@@ -1,9 +1,7 @@
 package com.shpp.p2p.cs.lzhukova.assignment1;
 
-import com.shpp.karel.KarelTheRobot;
 
-
-public class Assignment1Part2 extends KarelTheRobot {
+public class Assignment1Part2 extends Assignment1Superclass {
 
 
     /**
@@ -63,17 +61,6 @@ public class Assignment1Part2 extends KarelTheRobot {
         while (frontIsClear()) {
             move();
         }
-        turnLeft();
-    }
-
-
-    /**
-     * No precondition.
-     * Karel just wants to turn 180 degrees
-     * regarding his previous position.
-     */
-    private void turnAround() throws Exception {
-        turnLeft();
         turnLeft();
     }
 }

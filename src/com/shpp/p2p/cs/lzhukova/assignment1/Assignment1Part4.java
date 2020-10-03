@@ -1,8 +1,7 @@
 package com.shpp.p2p.cs.lzhukova.assignment1;
 
-import com.shpp.karel.KarelTheRobot;
 
-public class Assignment1Part4 extends KarelTheRobot {
+public class Assignment1Part4 extends Assignment1Superclass {
 
     /**
      * Precondition: Karl stays in South-West corner,
@@ -12,6 +11,10 @@ public class Assignment1Part4 extends KarelTheRobot {
      * and so on. The first beeper Karel lefts in the South-West corner.
      */
     public void run() throws Exception {
+        // Karel puts beeper, in case if the world consists of 1 cell.
+        if (frontIsBlocked()) {
+            putBeeper();
+        }
         while (frontIsClear()) {
             fillOddRowAndReturnBack();
             fillEvenRowAndReturnBack();
@@ -98,24 +101,4 @@ public class Assignment1Part4 extends KarelTheRobot {
         }
     }
 
-    /**
-     * No precondition.
-     * Karel just wants to turn 180 degrees
-     * regarding his previous position.
-     */
-    private void turnAround() throws Exception {
-        turnLeft();
-        turnLeft();
-    }
-
-    /**
-     * No precondition.
-     * Karel just wants to turn right
-     * in regard to his previous position
-     */
-    private void turnRight() throws Exception {
-        for (int i = 0; i < 3; i++) {
-            turnLeft();
-        }
-    }
 }
