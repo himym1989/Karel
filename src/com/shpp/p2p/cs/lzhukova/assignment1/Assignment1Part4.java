@@ -11,13 +11,25 @@ public class Assignment1Part4 extends Assignment1Superclass {
      * and so on. The first beeper Karel lefts in the South-West corner.
      */
     public void run() throws Exception {
-        // Karel puts beeper, in case if the world consists of 1 cell.
-        if (frontIsBlocked()) {
-            putBeeper();
-        }
+        checkOneCellWorld();
         while (frontIsClear()) {
             fillOddRowAndReturnBack();
             fillEvenRowAndReturnBack();
+        }
+    }
+
+    /**
+     * Precondition: Karel stays in South-West corner,looks East.
+     * He checks, if the world has one-cell width
+     * and one-cell height. Karel puts beeper,
+     * if the world consists from one cell.
+     */
+    private void checkOneCellWorld() throws Exception {
+        if (frontIsBlocked()) {
+            turnLeft();
+            if (frontIsBlocked()) {
+                putBeeper();
+            }
         }
     }
 
