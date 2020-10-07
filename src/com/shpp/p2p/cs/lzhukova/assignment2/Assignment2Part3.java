@@ -55,25 +55,26 @@ public class Assignment2Part3 extends WindowProgram {
      * @param y The y coordinate of the upper-left corner of the bounding box for the pawprint.
      */
     private void drawPawprint(double x, double y) {
-        drawPawHeel(x, y);
-        drawPawToe(x + FIRST_TOE_OFFSET_X, y + FIRST_TOE_OFFSET_Y);
-        drawPawToe(x + SECOND_TOE_OFFSET_X, y + SECOND_TOE_OFFSET_Y);
-        drawPawToe(x + THIRD_TOE_OFFSET_X, y + THIRD_TOE_OFFSET_Y);
+        Color color = Color.BLACK;
+        add(createPawHeel(x, y, color));
+        add(createPawToe(x + FIRST_TOE_OFFSET_X, y + FIRST_TOE_OFFSET_Y, color));
+        add(createPawToe(x + SECOND_TOE_OFFSET_X, y + SECOND_TOE_OFFSET_Y, color));
+        add(createPawToe(x + THIRD_TOE_OFFSET_X, y + THIRD_TOE_OFFSET_Y, color));
     }
 
-    private void drawPawToe(double x, double y) {
+    private GOval createPawToe(double x, double y, Color color) {
         GOval toe = new GOval(x, y, TOE_WIDTH, TOE_HEIGHT);
-        toe.setColor(Color.BLACK);
+        toe.setColor(color);
+        toe.setFillColor(color);
         toe.setFilled(true);
-        toe.setFillColor(Color.BLACK);
-        add(toe);
+        return toe;
     }
 
-    private void drawPawHeel(double x, double y) {
-        GOval heel = new GOval(HEEL_OFFSET_X + x, HEEL_OFFSET_Y + y, HEEL_WIDTH, HEEL_HEIGHT);
-        heel.setColor(Color.BLACK);
+    private GOval createPawHeel(double x, double y, Color color) {
+        GOval heel = new GOval(x + HEEL_OFFSET_X, y + HEEL_OFFSET_Y, HEEL_WIDTH, HEEL_HEIGHT);
+        heel.setColor(color);
+        heel.setFillColor(color);
         heel.setFilled(true);
-        heel.setFillColor(Color.BLACK);
-        add(heel);
+        return heel;
     }
 }
