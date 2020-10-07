@@ -64,6 +64,4 @@ public class Assignment1Part3 extends Assignment1Superclass {
     }
 
 
-
-
 }
