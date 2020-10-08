@@ -1,0 +1,61 @@
+package com.shpp.p2p.cs.lzhukova.assignment2;
+
+
+import acm.graphics.GRect;
+import com.shpp.cs.a.graphics.WindowProgram;
+
+import java.awt.*;
+
+
+public class Assignment2Part5 extends WindowProgram {
+    public static final int APPLICATION_WIDTH = 350;
+    public static final int APPLICATION_HEIGHT = 350;
+
+    /* The number of rows and columns in the grid, respectively. */
+    private static final int NUM_ROWS = 5;
+    private static final int NUM_COLS = 6;
+
+    /* The width and height of each box. */
+    private static final double BOX_SIZE = 40;
+
+    /* The horizontal and vertical spacing between the boxes. */
+    private static final double BOX_SPACING = 10;
+
+    private static final double MATRIX_WIDTH = 290;
+    private static final double MATRIX_HEIGHT = 240;
+
+    double offsetX;
+    double offsetY;
+
+    public void run() {
+        offsetX = (getWidth() - MATRIX_WIDTH) / 2;
+        offsetY = (getHeight() - MATRIX_HEIGHT) / 2;
+        drawMatrix();
+    }
+
+    private void drawMatrix() {
+        for (int i = 0; i < NUM_ROWS; i++) {
+            drawMatrixRow(i);
+        }
+    }
+
+    private void drawMatrixRow(int rowNumber) {
+        for (int i = 0; i < NUM_COLS; i++) {
+            drawMatrixItem(rowNumber, i);
+        }
+    }
+
+    private void drawMatrixItem(int rowNumber, int colNumber) {
+        GRect box = new GRect(
+                offsetX + (colNumber * (BOX_SIZE + BOX_SPACING)),
+                offsetY + (rowNumber * (BOX_SIZE + BOX_SPACING)),
+                BOX_SIZE,
+                BOX_SIZE
+        );
+        box.setFilled(true);
+        box.setFillColor(Color.BLACK);
+        add(box);
+    }
+}
+
+
