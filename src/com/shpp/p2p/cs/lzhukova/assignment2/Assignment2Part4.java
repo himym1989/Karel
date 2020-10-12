@@ -16,19 +16,22 @@ public class Assignment2Part4 extends WindowProgram {
     public static final int APPLICATION_WIDTH = 350;
     public static final int APPLICATION_HEIGHT = 300;
 
-    /* Constants describe width and height of the flag */
-    public static final double FLAG_WIDTH = APPLICATION_WIDTH / 1.5;
-    public static final double FLAG_HEIGHT = APPLICATION_HEIGHT / 1.5;
-
     /* Constants describe additional colors for Belgium flag */
     private static final Color CARDINAL_RED = new Color(196, 30, 58);
     private static final Color YELLOW_FAUX_BANANA = new Color(253, 218, 36);
 
+    /* describing width and height of the flag */
+    private double flagWidth;
+    private double flagHeight;
+
     public void run() {
+        flagWidth = getWidth() / 1.5;
+        flagHeight = getHeight() / 1.5;
+
         /* finding the x coordinate of the upper-left corner of the flag. */
-        double offsetX = (getWidth() - FLAG_WIDTH) / 2;
+        double offsetX = (getWidth() - flagWidth) / 2;
         /* finding the y coordinate of the upper-left corner of the flag. */
-        double offsetY = (getHeight() - FLAG_HEIGHT) / 2;
+        double offsetY = (getHeight() - flagHeight) / 2;
         drawVerticalTricolorFlag(offsetX, offsetY);
         writeCountryName();
     }
@@ -50,15 +53,15 @@ public class Assignment2Part4 extends WindowProgram {
      */
     private void drawVerticalTricolorFlag(double x, double y) {
         add(createColumn(x, y, Color.BLACK));
-        add(createColumn(x + FLAG_WIDTH / 3, y, YELLOW_FAUX_BANANA));
-        add(createColumn(x + FLAG_WIDTH / 3 * 2, y, CARDINAL_RED));
+        add(createColumn(x + flagWidth / 3, y, YELLOW_FAUX_BANANA));
+        add(createColumn(x + flagWidth / 3 * 2, y, CARDINAL_RED));
     }
 
     /**
      * Method describes creating of color columns in the flag.
      */
     private GRect createColumn(double x, double y, Color color) {
-        GRect column = new GRect(x, y, FLAG_WIDTH / 3, FLAG_HEIGHT);
+        GRect column = new GRect(x, y, flagWidth / 3, flagHeight);
         column.setColor(color);
         column.setFillColor(color);
         column.setFilled(true);

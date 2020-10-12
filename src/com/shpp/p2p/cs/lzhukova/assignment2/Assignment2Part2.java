@@ -18,20 +18,21 @@ public class Assignment2Part2 extends WindowProgram {
     public static final int APPLICATION_WIDTH = 300;
     public static final int APPLICATION_HEIGHT = 300;
 
-    /* Constant describes diameter of the ovals */
-    private final int DIAMETER = APPLICATION_HEIGHT / 4;
+    /*  describes diameter of the ovals */
+    private int diameter;
 
     public void run() {
+        diameter = getHeight() / 4;
         drawOvals();
         drawRectangle();
     }
 
     private void drawRectangle() {
         GRect r = new GRect(
-                (double) DIAMETER / 2,
-                (double) DIAMETER / 2,
-                getWidth() - DIAMETER,
-                getHeight() - DIAMETER
+                (double) diameter / 2,
+                (double) diameter / 2,
+                getWidth() - diameter,
+                getHeight() - diameter
         );
         r.setColor(Color.white);
         r.setFilled(true);
@@ -42,17 +43,17 @@ public class Assignment2Part2 extends WindowProgram {
     /* positioning ovals depending on their positions in the application window */
     private void drawOvals() {
         drawOval(0, 0);
-        drawOval(getWidth() - DIAMETER, 0);
-        drawOval(0, getHeight() - DIAMETER);
-        drawOval(getWidth() - DIAMETER, getHeight() - DIAMETER);
+        drawOval(getWidth() - diameter, 0);
+        drawOval(0, getHeight() - diameter);
+        drawOval(getWidth() - diameter, getHeight() - diameter);
     }
 
     /* method, that describes drawing an oval */
     private void drawOval(int x, int y) {
         GOval o = new GOval(
                 x, y,
-                DIAMETER,
-                DIAMETER
+                diameter,
+                diameter
         );
         o.setColor(Color.black);
         o.setFilled(true);
