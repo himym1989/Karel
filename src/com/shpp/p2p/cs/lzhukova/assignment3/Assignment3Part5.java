@@ -34,19 +34,19 @@ public class Assignment3Part5 extends TextProgram {
      * his bet.
      *
      * @param gain       - int, money, that gamer gets in one game.
-     * @param total      - int,  total gain in all games
+     * @param totalGain      - int,  total gain in all games
      * @param gameAmount - int, amount of games, that were needed
      *                   to win at least 20$
      */
-    private void playTheGame(int gain, int total, int gameAmount) {
-        while (total < MINIMAL_GAIN) {
+    private void playTheGame(int gain, int totalGain, int gameAmount) {
+        while (totalGain < MINIMAL_GAIN) {
             gameAmount++;
             if (isHeads()) {
                 gain *= 2;
             }
-            total += gain;
+            totalGain += gain;
             println("This game you earned " + gain + "$");
-            println("Your total is " + total + "$");
+            println("Your total is " + totalGain + "$");
         }
         println("It took " + gameAmount + " games to earn 20$");
     }
