@@ -15,8 +15,8 @@ import java.awt.*;
 public class Assignment2Part2 extends WindowProgram {
 
     /* Constants describe width and height of the application window */
-    public static final int APPLICATION_WIDTH = 300;
-    public static final int APPLICATION_HEIGHT = 300;
+    public static final int APPLICATION_WIDTH = 200;
+    public static final int APPLICATION_HEIGHT = 100;
 
     /*  describes diameter of the ovals */
     private int diameter;

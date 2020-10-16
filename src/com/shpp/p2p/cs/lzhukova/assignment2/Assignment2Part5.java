@@ -14,7 +14,7 @@ import java.awt.*;
 public class Assignment2Part5 extends WindowProgram {
 
     /* Constants describe width and height of the application window */
-    public static final int APPLICATION_WIDTH = 350;
+    public static final int APPLICATION_WIDTH = 550;
     public static final int APPLICATION_HEIGHT = 350;
 
     /* The number of rows and columns in the grid, respectively. */
