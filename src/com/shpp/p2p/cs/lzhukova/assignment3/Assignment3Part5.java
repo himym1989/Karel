@@ -19,8 +19,10 @@ public class Assignment3Part5 extends TextProgram {
     RandomGenerator rg = RandomGenerator.getInstance();
 
     public void run() {
+        // gamer's gain in one particular game;
         int gain = 1;
         int totalGain = 0;
+        // game amount, that will be needed to win at least 20$
         int gameAmount = 0;
 
         println("The game is started. Your first bet is 1$. ");
@@ -34,7 +36,7 @@ public class Assignment3Part5 extends TextProgram {
      * his bet.
      *
      * @param gain       - int, money, that gamer gets in one game.
-     * @param totalGain      - int,  total gain in all games
+     * @param totalGain  - int,  total gain in all games
      * @param gameAmount - int, amount of games, that were needed
      *                   to win at least 20$
      */
