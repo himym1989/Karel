@@ -3,7 +3,6 @@ package com.shpp.p2p.cs.lzhukova.assignment3;
 import acm.util.RandomGenerator;
 import com.shpp.cs.a.console.TextProgram;
 
-
 /**
  * This program imitates casino play.
  * Rules are easy: the gamer makes his bet 1$;
@@ -25,7 +24,6 @@ public class Assignment3Part5 extends TextProgram {
         // game amount, that will be needed to win at least 20$
         int gameAmount = 0;
 
-        println("The game is started. Your first bet is 1$. ");
         playTheGame(gain, totalGain, gameAmount);
     }
 

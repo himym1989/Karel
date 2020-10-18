@@ -2,7 +2,6 @@ package com.shpp.p2p.cs.lzhukova.assignment3;
 
 import com.shpp.cs.a.console.TextProgram;
 
-
 /**
  * This program describes the fun math game - Hailstone Numbers.
  * Start with any positive integer n.  If the current number is even,
