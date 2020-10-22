@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.lzhukova.Assignment4;
+package com.shpp.p2p.cs.lzhukova.assignment4;
 
 import acm.graphics.GObject;
 import acm.graphics.GOval;
@@ -72,6 +72,9 @@ public class Breakout extends WindowProgram {
      */
     private static final int BRICK_Y_OFFSET = 70;
 
+    private static final double BALL_ACCELERATION = 1.05;
+    private static final int BRICKS_AMOUNT = NBRICK_ROWS * NBRICKS_PER_ROW;
+
 
     /**
      * Number of turns
@@ -83,6 +86,7 @@ public class Breakout extends WindowProgram {
     private double vx;
     private double vy;
 
+    private int turns = NTURNS;
 
     public void run() {
         addBricks();
@@ -90,9 +94,15 @@ public class Breakout extends WindowProgram {
         addBall();
 
         addMouseListeners();
-        waitForClick();
 
-        startGame();
+        while (turns > 0) {
+            println("start: " + turns);
+            centerBall();
+            waitForClick();
+            playGame();
+        }
+
+        // TODO: show message
     }
 
     private void addBricks() {
@@ -133,7 +143,7 @@ public class Breakout extends WindowProgram {
      * Method implements the break-out game,
      * handles collision with objects
      */
-    private void startGame() {
+    private void playGame() {
         RandomGenerator rgen = RandomGenerator.getInstance();
         vx = rgen.nextDouble(1.0, 5.0);
         if (rgen.nextBoolean(0.5)) {
@@ -148,12 +158,23 @@ public class Breakout extends WindowProgram {
             if (collider == paddle) {
                 vy = -vy;
             } else if (collider != null) {
-                vy = -vy;
+                vy = -(vy * BALL_ACCELERATION);
                 remove(collider);
                 println(collider);
             }
             pause(PAUSE);
+
+            if (ball.getY() > getHeight()) {
+                println("FAIL");
+                turns--;
+                break;
+            }
         }
+    }
+
+    private void centerBall() {
+        ball.setLocation(getWidth() / 2 - BALL_RADIUS,
+                getHeight() / 2 - BALL_RADIUS);
     }
 
 
@@ -161,7 +182,7 @@ public class Breakout extends WindowProgram {
      * This method implements check, if the ball
      * collides with some object and
      *
-     * @return object, that collides with the ball.
+     * @return GObject|null Object, that collides with the ball.
      */
     private GObject getCollidingObject() {
         double[][] coords = {
@@ -177,6 +198,7 @@ public class Breakout extends WindowProgram {
                 return collider;
             }
         }
+
         return null;
     }
 
