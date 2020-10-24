@@ -1,9 +1,6 @@
 package com.shpp.p2p.cs.lzhukova.assignment4;
 
-import acm.graphics.GLabel;
-import acm.graphics.GObject;
-import acm.graphics.GOval;
-import acm.graphics.GRect;
+import acm.graphics.*;
 import acm.util.RandomGenerator;
 import com.shpp.cs.a.graphics.WindowProgram;
 
@@ -22,7 +19,7 @@ import java.util.ArrayList;
  * in this case the gamer lost the game.
  */
 
-public class Breakout extends WindowProgram {
+public class BreakoutExt extends WindowProgram {
     /**
      * Width and height of application window in pixels
      */
@@ -36,6 +33,11 @@ public class Breakout extends WindowProgram {
     private static final int HEIGHT = APPLICATION_HEIGHT;
 
     private static final double PAUSE = 1000.0 / 48;
+
+    /**
+     * Height of the scoreboard.
+     */
+    private static final int SCOREBAR_HEIGHT = 20;
 
     /**
      * Dimensions of the paddle
@@ -56,7 +58,7 @@ public class Breakout extends WindowProgram {
     /**
      * Number of rows of bricks
      */
-    private static final int NBRICK_ROWS = 10;
+    private static final int NBRICK_ROWS = 1;
 
     /**
      * Separation between bricks
@@ -108,6 +110,7 @@ public class Breakout extends WindowProgram {
 
     private GRect paddle;
     private GOval ball;
+    private GLine separator;
 
     /* variables, that control move direction and velocity of the ball */
     private double vx;
@@ -123,11 +126,14 @@ public class Breakout extends WindowProgram {
      */
     private int bricksAmount = NBRICK_ROWS * NBRICKS_PER_ROW;
 
+    private GImage lifeCounter[] = new GImage[3];
+
 
     public void run() {
         addBricks();
         addPaddle();
         addBall();
+        renderScoreBar();
 
         addMouseListeners();
 
@@ -139,6 +145,7 @@ public class Breakout extends WindowProgram {
 
         checkResult();
     }
+
 
     /**
      * Adding bricks to the application window.
@@ -187,7 +194,7 @@ public class Breakout extends WindowProgram {
         if (rgen.nextBoolean(0.5)) {
             vx = -vx;
         }
-        vy = 7;
+        vy = 30;
 
         while (bricksAmount > 0) {
             checkWallsChangeDirection();
@@ -195,7 +202,7 @@ public class Breakout extends WindowProgram {
             ball.move(vx, vy);
             GObject collider = getCollidingObject();
 
-            if (collider == paddle) {
+            if (collider == paddle || collider instanceof GLine) {
                 vy = -vy;
             } else if (collider != null) {
                 vy = -vy * Y_ACCELERATION;
@@ -213,16 +220,23 @@ public class Breakout extends WindowProgram {
             if (lossConfirmed()) {
                 break;
             }
+            paddle.setLocation(ball.getX()-BALL_RADIUS*2,getHeight() - PADDLE_Y_OFFSET);
         }
     }
 
+    /**
+     * ...
+     * @return boolean
+     */
     private boolean lossConfirmed() {
         if (ball.getY() > getHeight()) {
             turns--;
+            lifeCounter[turns].setVisible(false);
             return true;
         }
         return false;
     }
+
     /**
      * Check if the game
      */
@@ -267,8 +281,6 @@ public class Breakout extends WindowProgram {
         boolean isUpDirection = vy < 0;
         ArrayList<double[]> coords = getBallOuterCoords(isUpDirection);
 
-
-
         GObject collider;
 
         for (double[] coord : coords) {
@@ -287,6 +299,7 @@ public class Breakout extends WindowProgram {
      * This method creates ArrayList of ball coordinates depending on
      * its direction. It serves for avoiding bags with incorrect ball-collision,
      * that emerges with increasing y-velocity.
+     *
      * @param isUpDirection, boolean - checks direction on y-coordinate
      * @return ArrayList of arrays with coordinates.
      */
@@ -319,8 +332,23 @@ public class Breakout extends WindowProgram {
         if (ball.getX() <= 0 || (ball.getX() >= getWidth() - ball.getWidth())) {
             vx = -vx;
         }
-        if (ball.getY() <= 0) {
+        if (ball.getY() <= SCOREBAR_HEIGHT) {
             vy = -vy;
+        }
+    }
+
+    /**
+     * ...
+     */
+    private void renderScoreBar() {
+        GLine separator = new GLine(0, SCOREBAR_HEIGHT, getWidth(), SCOREBAR_HEIGHT);
+        add(separator);
+
+        for (int i = 0; i < turns; i++) {
+            GImage lifeIcon = new GImage("assets/life.png");
+            lifeIcon.setLocation(lifeIcon.getWidth() * i, SCOREBAR_HEIGHT / 2f - lifeIcon.getHeight() / 2f);
+            add(lifeIcon);
+            lifeCounter[i] = lifeIcon;
         }
     }
 
@@ -355,6 +383,7 @@ public class Breakout extends WindowProgram {
         paddle.setFilled(true);
         add(paddle);
     }
+
 
     /**
      * Mouse moves control paddle moves on x-coordinate,
