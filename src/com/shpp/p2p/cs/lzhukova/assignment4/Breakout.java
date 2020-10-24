@@ -1,5 +1,6 @@
 package com.shpp.p2p.cs.lzhukova.assignment4;
 
+import acm.graphics.GLabel;
 import acm.graphics.GObject;
 import acm.graphics.GOval;
 import acm.graphics.GRect;
@@ -8,6 +9,18 @@ import com.shpp.cs.a.graphics.WindowProgram;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+
+/**
+ * This is a breakout game. Rules are easy:
+ * the game starts when the gamer clicked a mouse.
+ * He/she has three turns to destroy rows of bricks.
+ * The game ends in two cases:
+ * 1) there are no bricks left on the screen.
+ * in this case the gamer wins;
+ * 2) the gamer used all three turns, but some bricks are left.
+ * in this case the gamer lost the game.
+ */
 
 public class Breakout extends WindowProgram {
     /**
@@ -23,7 +36,6 @@ public class Breakout extends WindowProgram {
     private static final int HEIGHT = APPLICATION_HEIGHT;
 
     private static final double PAUSE = 1000.0 / 48;
-
 
     /**
      * Dimensions of the paddle
@@ -72,21 +84,45 @@ public class Breakout extends WindowProgram {
      */
     private static final int BRICK_Y_OFFSET = 70;
 
-    private static final double BALL_ACCELERATION = 1.05;
-    private static final int BRICKS_AMOUNT = NBRICK_ROWS * NBRICKS_PER_ROW;
-
 
     /**
      * Number of turns
      */
     private static final int NTURNS = 3;
 
+    /**
+     * Maximum y-velocity of the ball.
+     */
+    private static final double MAX_Y_VELOCITY = 20;
+
+    /**
+     * Maximum x-velocity of the ball.
+     */
+    private static final double MAX_X_VELOCITY = 5;
+
+
+    /**
+     * The acceleration in the y direction.
+     */
+    private static final double Y_ACCELERATION = 1.05;
+
     private GRect paddle;
     private GOval ball;
+
+    /* variables, that control move direction and velocity of the ball */
     private double vx;
     private double vy;
 
+    /**
+     * Amount of turns, will change in case of ball dropping down
+     */
     private int turns = NTURNS;
+
+    /**
+     * Amount of bricks on the screen, will change with every collision of the ball and a brick
+     */
+    private int bricksAmount = NBRICK_ROWS * NBRICKS_PER_ROW;
+
 
     public void run() {
         addBricks();
@@ -95,18 +131,22 @@ public class Breakout extends WindowProgram {
 
         addMouseListeners();
 
-        while (turns > 0) {
-            println("start: " + turns);
+        while (turns > 0 && bricksAmount > 0) {
             centerBall();
             waitForClick();
             playGame();
         }
 
-        // TODO: show message
+        checkResult();
     }
 
+    /**
+     * Adding bricks to the application window.
+     * The amount of the bricks are controlled by constants.
+     * In this game there are 10 rows, with 10 bricks in each.
+     */
     private void addBricks() {
-        double xOffset = (getWidth() - (BRICK_WIDTH * NBRICKS_PER_ROW + BRICK_SEP * (NBRICKS_PER_ROW - 1))) / 2;
+        double xOffset = (getWidth() - (BRICK_WIDTH * NBRICKS_PER_ROW + BRICK_SEP * (NBRICKS_PER_ROW - 1))) / 2f;
 
         for (int row = 0; row < NBRICK_ROWS; row++) {
             for (int col = 0; col < NBRICKS_PER_ROW; col++) {
@@ -128,7 +168,7 @@ public class Breakout extends WindowProgram {
      * Change of the bricks color depending on the number of row.
      *
      * @param row - index number of the row.
-     * @return - color.
+     * @return - color of the rows.
      */
     private Color getBrickColor(int row) {
         if (row < 2) return Color.RED;
@@ -140,41 +180,75 @@ public class Breakout extends WindowProgram {
 
 
     /**
-     * Method implements the break-out game,
-     * handles collision with objects
+     * Method implements one turn of breakout game.
      */
     private void playGame() {
         RandomGenerator rgen = RandomGenerator.getInstance();
-        vx = rgen.nextDouble(1.0, 5.0);
         if (rgen.nextBoolean(0.5)) {
             vx = -vx;
         }
         vy = 7;
 
-        while (true) {
-            ball.move(vx, vy);
+        while (bricksAmount > 0) {
             checkWallsChangeDirection();
+
+            ball.move(vx, vy);
             GObject collider = getCollidingObject();
+
             if (collider == paddle) {
                 vy = -vy;
             } else if (collider != null) {
-                vy = -(vy * BALL_ACCELERATION);
+                vy = -vy * Y_ACCELERATION;
+                vx = rgen.nextDouble(1.0, MAX_X_VELOCITY);
                 remove(collider);
-                println(collider);
+                bricksAmount--;
             }
+
+            if (vy > MAX_Y_VELOCITY) {
+                vy = MAX_Y_VELOCITY;
+            }
+
             pause(PAUSE);
 
             if (ball.getY() > getHeight()) {
-                println("FAIL");
                 turns--;
                 break;
             }
         }
+
     }
 
+    /**
+     * Check if the game
+     */
+    private void checkResult() {
+        if (bricksAmount == 0 || turns == 0) {
+            remove(ball);
+            remove(paddle);
+            printResultInfo();
+        }
+    }
+
+    /**
+     * ...
+     */
+    private void printResultInfo() {
+        GLabel resultInfo = new GLabel(
+                turns > 0 ? "Congrats! You win the game!" : "Sorry! You lost the game!");
+        resultInfo.setFont("Serif-30");
+        add(resultInfo, getWidth(), (getHeight() + resultInfo.getAscent()) / 2);
+        while (resultInfo.getX() > (getWidth() - resultInfo.getWidth()) / 2) {
+            resultInfo.move(-4, 0);
+            pause(PAUSE);
+        }
+    }
+
+    /**
+     * Setting ball location at the center of the app window.
+     */
     private void centerBall() {
-        ball.setLocation(getWidth() / 2 - BALL_RADIUS,
-                getHeight() / 2 - BALL_RADIUS);
+        ball.setLocation(getWidth() / 2f - BALL_RADIUS,
+                getHeight() / 2f - BALL_RADIUS);
     }
 
 
@@ -185,21 +259,49 @@ public class Breakout extends WindowProgram {
      * @return GObject|null Object, that collides with the ball.
      */
     private GObject getCollidingObject() {
-        double[][] coords = {
-                {ball.getX(), ball.getY()},
-                {ball.getX() + 2 * BALL_RADIUS, ball.getY()},
-                {ball.getX(), ball.getY() + 2 * BALL_RADIUS},
-                {ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS}
-        };
+        boolean isUpDirection = vy < 0;
+        ArrayList<double[]> coords = getBallOuterCoords(isUpDirection);
+
+
+
+        GObject collider;
 
         for (double[] coord : coords) {
-            GObject collider = getElementAt(coord[0], coord[1]);
-            if (collider != null) {
-                return collider;
+            for (double i = 0; i <= Math.abs(vy); i++) {
+                collider = getElementAt(coord[0], coord[1] + (isUpDirection ? -i : i));
+                if (collider != null) {
+                    return collider;
+                }
             }
         }
 
         return null;
+    }
+
+    /**
+     * This method creates ArrayList of ball coordinates depending on
+     * its direction. It serves for avoiding bags with incorrect ball-collision,
+     * that emerges with increasing y-velocity.
+     * @param isUpDirection, boolean - checks direction on y-coordinate
+     * @return ArrayList of arrays with coordinates.
+     */
+    private ArrayList<double[]> getBallOuterCoords(boolean isUpDirection) {
+        ArrayList<double[]> coords = new ArrayList<>();
+
+        if (isUpDirection) {
+            coords.add(new double[]{ball.getX(), ball.getY()}); // top left
+            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() - 1}); // top-middle
+            coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY()}); // top-right
+        } else {
+            coords.add(new double[]{ball.getX(), ball.getY() + 2 * BALL_RADIUS}); // bottom-left
+            coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS}); // bottom-middle
+            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS + 1}); // bottom-right
+        }
+
+        // coords.add(new double[]{ball.getX() - 1, ball.getY() + BALL_RADIUS}); // middle left
+        // coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS + 1, ball.getY() + BALL_RADIUS}); // middle right
+
+        return coords;
     }
 
 
@@ -222,8 +324,8 @@ public class Breakout extends WindowProgram {
      * animated later.
      */
     private void addBall() {
-        ball = new GOval(getWidth() / 2 - BALL_RADIUS,
-                getHeight() / 2 - BALL_RADIUS,
+        ball = new GOval(getWidth() / 2f - BALL_RADIUS,
+                getHeight() / 2f - BALL_RADIUS,
                 BALL_RADIUS * 2,
                 BALL_RADIUS * 2
         );
@@ -249,9 +351,13 @@ public class Breakout extends WindowProgram {
         add(paddle);
     }
 
+    /**
+     * Mouse moves control paddle moves on x-coordinate,
+     * mouse linked to the paddle-center.
+     */
     @Override
     public void mouseMoved(MouseEvent e) {
-        paddle.setLocation(e.getX() - PADDLE_WIDTH / 2, paddle.getY());
+        paddle.setLocation(e.getX() - PADDLE_WIDTH / 2f, paddle.getY());
         mouseExited(e);
     }
 
