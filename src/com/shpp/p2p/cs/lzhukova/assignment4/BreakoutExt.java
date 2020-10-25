@@ -3,10 +3,29 @@ package com.shpp.p2p.cs.lzhukova.assignment4;
 import acm.graphics.*;
 import acm.util.RandomGenerator;
 import com.shpp.cs.a.graphics.WindowProgram;
+import com.shpp.p2p.cs.lzhukova.train.StdAudio;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+
+
+class PlaySound extends Thread {
+    private String type;
+
+    @Override
+    public void run() {
+        if (type == null) {
+            return;
+        }
+        double[] clip = StdAudio.read("assets/" + type + ".wav");
+        StdAudio.play(clip);
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+}
 
 /**
  * This is a breakout game. Rules are easy:
@@ -18,7 +37,6 @@ import java.util.ArrayList;
  * 2) the gamer used all three turns, but some bricks are left.
  * in this case the gamer lost the game.
  */
-
 public class BreakoutExt extends WindowProgram {
     /**
      * Width and height of application window in pixels
@@ -58,7 +76,7 @@ public class BreakoutExt extends WindowProgram {
     /**
      * Number of rows of bricks
      */
-    private static final int NBRICK_ROWS = 1;
+    private static final int NBRICK_ROWS = 10;
 
     /**
      * Separation between bricks
@@ -84,7 +102,7 @@ public class BreakoutExt extends WindowProgram {
     /**
      * Offset of the top brick row from the top
      */
-    private static final int BRICK_Y_OFFSET = 70;
+    private static final int BRICK_Y_OFFSET = 70 + SCOREBAR_HEIGHT;
 
 
     /**
@@ -107,27 +125,21 @@ public class BreakoutExt extends WindowProgram {
      * The acceleration in the y direction.
      */
     private static final double Y_ACCELERATION = 1.05;
-
+    private final GImage[] lifeCounter = new GImage[3];
     private GRect paddle;
     private GOval ball;
     private GLine separator;
-
     /* variables, that control move direction and velocity of the ball */
     private double vx;
     private double vy;
-
     /**
      * Amount of turns, will change in case of ball dropping down
      */
     private int turns = NTURNS;
-
     /**
      * Amount of bricks on the screen, will change with every collision of the ball and a brick
      */
-    private int bricksAmount = NBRICK_ROWS * NBRICKS_PER_ROW;
-
-    private GImage lifeCounter[] = new GImage[3];
-
+    private int bricksAmount;
 
     public void run() {
         addBricks();
@@ -137,12 +149,20 @@ public class BreakoutExt extends WindowProgram {
 
         addMouseListeners();
 
+        startGame();
+    }
+
+    private void startGame() {
+        bricksAmount =  NBRICK_ROWS * NBRICKS_PER_ROW;
+        turns = NTURNS;
+
         while (turns > 0 && bricksAmount > 0) {
             centerBall();
             waitForClick();
             playGame();
         }
 
+        playSound("smb_gameover");
         checkResult();
     }
 
@@ -194,7 +214,7 @@ public class BreakoutExt extends WindowProgram {
         if (rgen.nextBoolean(0.5)) {
             vx = -vx;
         }
-        vy = 30;
+        vy = 5;
 
         while (bricksAmount > 0) {
             checkWallsChangeDirection();
@@ -204,11 +224,13 @@ public class BreakoutExt extends WindowProgram {
 
             if (collider == paddle || collider instanceof GLine) {
                 vy = -vy;
+                playSound("hitBall");
             } else if (collider != null) {
                 vy = -vy * Y_ACCELERATION;
                 vx = rgen.nextDouble(1.0, MAX_X_VELOCITY);
                 remove(collider);
                 bricksAmount--;
+                playSound("-timbale");
             }
 
             if (vy > MAX_Y_VELOCITY) {
@@ -220,8 +242,14 @@ public class BreakoutExt extends WindowProgram {
             if (lossConfirmed()) {
                 break;
             }
-            paddle.setLocation(ball.getX()-BALL_RADIUS*2,getHeight() - PADDLE_Y_OFFSET);
+            // paddle.setLocation(ball.getX() - BALL_RADIUS * 2, getHeight() - PADDLE_Y_OFFSET);
         }
+    }
+
+    private void playSound(String type) {
+        PlaySound s = new PlaySound();
+        s.setType(type);
+        s.start();
     }
 
     /**
@@ -409,6 +437,5 @@ public class BreakoutExt extends WindowProgram {
             paddle.setLocation(getWidth() - PADDLE_WIDTH, paddle.getY());
         }
     }
-
 
 }
