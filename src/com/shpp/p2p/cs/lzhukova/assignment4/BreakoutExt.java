@@ -3,439 +3,445 @@ package com.shpp.p2p.cs.lzhukova.assignment4;
 import acm.graphics.*;
 import acm.util.RandomGenerator;
 import com.shpp.cs.a.graphics.WindowProgram;
-import com.shpp.p2p.cs.lzhukova.train.StdAudio;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 
-class PlaySound extends Thread {
-    private String type;
+class BreakoutSound extends Thread {
+
+    private final double[] clip;
+
+    BreakoutSound(double[] clip) {
+        this.clip = clip;
+    }
 
     @Override
     public void run() {
-        if (type == null) {
-            return;
-        }
-        double[] clip = StdAudio.read("assets/" + type + ".wav");
         StdAudio.play(clip);
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 }
 
-/**
- * This is a breakout game. Rules are easy:
- * the game starts when the gamer clicked a mouse.
- * He/she has three turns to destroy rows of bricks.
- * The game ends in two cases:
- * 1) there are no bricks left on the screen.
- * in this case the gamer wins;
- * 2) the gamer used all three turns, but some bricks are left.
- * in this case the gamer lost the game.
- */
-public class BreakoutExt extends WindowProgram {
     /**
-     * Width and height of application window in pixels
+     * This is a breakout game. Rules are easy:
+     * the game starts when the gamer clicked a mouse.
+     * He/she has three turns to destroy rows of bricks.
+     * The game ends in two cases:
+     * 1) there are no bricks left on the screen.
+     * in this case the gamer wins;
+     * 2) the gamer used all three turns, but some bricks are left.
+     * in this case the gamer lost the game.
      */
-    public static final int APPLICATION_WIDTH = 400;
-    public static final int APPLICATION_HEIGHT = 600;
+    public class BreakoutExt extends WindowProgram {
+        /**
+         * Width and height of application window in pixels
+         */
+        public static final int APPLICATION_WIDTH = 400;
+        public static final int APPLICATION_HEIGHT = 600;
 
-    /**
-     * Dimensions of game board (usually the same)
-     */
-    private static final int WIDTH = APPLICATION_WIDTH;
-    private static final int HEIGHT = APPLICATION_HEIGHT;
+        /**
+         * Dimensions of game board (usually the same)
+         */
+        private static final int WIDTH = APPLICATION_WIDTH;
+        private static final int HEIGHT = APPLICATION_HEIGHT;
 
-    private static final double PAUSE = 1000.0 / 48;
+        private static final double PAUSE = 1000.0 / 48;
 
-    /**
-     * Height of the scoreboard.
-     */
-    private static final int SCOREBAR_HEIGHT = 20;
+        /**
+         * Height of the scoreboard.
+         */
+        private static final int SCOREBAR_HEIGHT = 20;
 
-    /**
-     * Dimensions of the paddle
-     */
-    private static final int PADDLE_WIDTH = 60;
-    private static final int PADDLE_HEIGHT = 10;
+        /**
+         * Dimensions of the paddle
+         */
+        private static final int PADDLE_WIDTH = 60;
+        private static final int PADDLE_HEIGHT = 10;
 
-    /**
-     * Offset of the paddle up from the bottom
-     */
-    private static final int PADDLE_Y_OFFSET = 30;
+        /**
+         * Offset of the paddle up from the bottom
+         */
+        private static final int PADDLE_Y_OFFSET = 30;
 
-    /**
-     * Number of bricks per row
-     */
-    private static final int NBRICKS_PER_ROW = 10;
+        /**
+         * Number of bricks per row
+         */
+        private static final int NBRICKS_PER_ROW = 10;
 
-    /**
-     * Number of rows of bricks
-     */
-    private static final int NBRICK_ROWS = 10;
+        /**
+         * Number of rows of bricks
+         */
+        private static final int NBRICK_ROWS = 10;
 
-    /**
-     * Separation between bricks
-     */
-    private static final int BRICK_SEP = 4;
+        /**
+         * Separation between bricks
+         */
+        private static final int BRICK_SEP = 4;
 
-    /**
-     * Width of a brick
-     */
-    private static final int BRICK_WIDTH =
-            (WIDTH - (NBRICKS_PER_ROW - 1) * BRICK_SEP) / NBRICKS_PER_ROW;
+        /**
+         * Width of a brick
+         */
+        private static final int BRICK_WIDTH =
+                (WIDTH - (NBRICKS_PER_ROW - 1) * BRICK_SEP) / NBRICKS_PER_ROW;
 
-    /**
-     * Height of a brick
-     */
-    private static final int BRICK_HEIGHT = 8;
+        /**
+         * Height of a brick
+         */
+        private static final int BRICK_HEIGHT = 8;
 
-    /**
-     * Radius of the ball in pixels
-     */
-    private static final int BALL_RADIUS = 10;
+        /**
+         * Radius of the ball in pixels
+         */
+        private static final int BALL_RADIUS = 10;
 
-    /**
-     * Offset of the top brick row from the top
-     */
-    private static final int BRICK_Y_OFFSET = 70 + SCOREBAR_HEIGHT;
+        /**
+         * Offset of the top brick row from the top
+         */
+        private static final int BRICK_Y_OFFSET = 70 + SCOREBAR_HEIGHT;
 
+        /**
+         * Number of turns
+         */
+        private static final int NTURNS = 3;
 
-    /**
-     * Number of turns
-     */
-    private static final int NTURNS = 3;
+        /**
+         * Maximum y-velocity of the ball.
+         */
+        private static final double MAX_Y_VELOCITY = 20;
 
-    /**
-     * Maximum y-velocity of the ball.
-     */
-    private static final double MAX_Y_VELOCITY = 20;
+        /**
+         * Maximum x-velocity of the ball.
+         */
+        private static final double MAX_X_VELOCITY = 5;
 
-    /**
-     * Maximum x-velocity of the ball.
-     */
-    private static final double MAX_X_VELOCITY = 5;
+        /**
+         * The acceleration in the y direction.
+         */
+        private static final double Y_ACCELERATION = 1.05;
 
+        private final GImage[] lifeCounter = new GImage[3];
 
-    /**
-     * The acceleration in the y direction.
-     */
-    private static final double Y_ACCELERATION = 1.05;
-    private final GImage[] lifeCounter = new GImage[3];
-    private GRect paddle;
-    private GOval ball;
-    private GLine separator;
-    /* variables, that control move direction and velocity of the ball */
-    private double vx;
-    private double vy;
-    /**
-     * Amount of turns, will change in case of ball dropping down
-     */
-    private int turns = NTURNS;
-    /**
-     * Amount of bricks on the screen, will change with every collision of the ball and a brick
-     */
-    private int bricksAmount;
+        private GRect paddle;
+        private GOval ball;
 
-    public void run() {
-        addBricks();
-        addPaddle();
-        addBall();
-        renderScoreBar();
+        /* variables, that control move direction and velocity of the ball */
+        private double vx;
+        private double vy;
 
-        addMouseListeners();
+        /**
+         * Amount of turns, will change in case of ball dropping down
+         */
+        private int turns = NTURNS;
 
-        startGame();
-    }
+        /**
+         * Amount of bricks on the screen, will change with every collision of the ball and a brick
+         */
+        private int bricksAmount;
 
-    private void startGame() {
-        bricksAmount =  NBRICK_ROWS * NBRICKS_PER_ROW;
-        turns = NTURNS;
+        public void run() {
+            addBricks();
+            addPaddle();
+            addBall();
+            renderScoreBar();
 
-        while (turns > 0 && bricksAmount > 0) {
-            centerBall();
-            waitForClick();
-            playGame();
+            addMouseListeners();
+
+            startGame();
         }
 
-        playSound("smb_gameover");
-        checkResult();
-    }
+        private void startGame() {
+            bricksAmount = NBRICK_ROWS * NBRICKS_PER_ROW;
+            turns = NTURNS;
 
-
-    /**
-     * Adding bricks to the application window.
-     * The amount of the bricks are controlled by constants.
-     * In this game there are 10 rows, with 10 bricks in each.
-     */
-    private void addBricks() {
-        double xOffset = (getWidth() - (BRICK_WIDTH * NBRICKS_PER_ROW + BRICK_SEP * (NBRICKS_PER_ROW - 1))) / 2f;
-
-        for (int row = 0; row < NBRICK_ROWS; row++) {
-            for (int col = 0; col < NBRICKS_PER_ROW; col++) {
-
-                GRect brick = new GRect(
-                        xOffset + col * (BRICK_WIDTH + BRICK_SEP),
-                        BRICK_Y_OFFSET + (row * (BRICK_HEIGHT + BRICK_SEP)),
-                        BRICK_WIDTH,
-                        BRICK_HEIGHT
-                );
-                brick.setColor(getBrickColor(row));
-                brick.setFilled(true);
-                add(brick);
-            }
-        }
-    }
-
-    /**
-     * Change of the bricks color depending on the number of row.
-     *
-     * @param row - index number of the row.
-     * @return - color of the rows.
-     */
-    private Color getBrickColor(int row) {
-        if (row < 2) return Color.RED;
-        if (row == 2 || row == 3) return Color.ORANGE;
-        if (row == 4 || row == 5) return Color.YELLOW;
-        if (row == 6 || row == 7) return Color.GREEN;
-        return Color.CYAN;
-    }
-
-
-    /**
-     * Method implements one turn of breakout game.
-     */
-    private void playGame() {
-        RandomGenerator rgen = RandomGenerator.getInstance();
-        if (rgen.nextBoolean(0.5)) {
-            vx = -vx;
-        }
-        vy = 5;
-
-        while (bricksAmount > 0) {
-            checkWallsChangeDirection();
-
-            ball.move(vx, vy);
-            GObject collider = getCollidingObject();
-
-            if (collider == paddle || collider instanceof GLine) {
-                vy = -vy;
-                playSound("hitBall");
-            } else if (collider != null) {
-                vy = -vy * Y_ACCELERATION;
-                vx = rgen.nextDouble(1.0, MAX_X_VELOCITY);
-                remove(collider);
-                bricksAmount--;
-                playSound("-timbale");
+            while (turns > 0 && bricksAmount > 0) {
+                centerBall();
+                waitForClick();
+                playGame();
             }
 
-            if (vy > MAX_Y_VELOCITY) {
-                vy = MAX_Y_VELOCITY;
-            }
-
-            pause(PAUSE);
-
-            if (lossConfirmed()) {
-                break;
-            }
-            // paddle.setLocation(ball.getX() - BALL_RADIUS * 2, getHeight() - PADDLE_Y_OFFSET);
+            playSound("game_over");
+            checkResult();
         }
-    }
 
-    private void playSound(String type) {
-        PlaySound s = new PlaySound();
-        s.setType(type);
-        s.start();
-    }
+        /**
+         * Adding bricks to the application window.
+         * The amount of the bricks are controlled by constants.
+         * In this game there are 10 rows, with 10 bricks in each.
+         */
+        private void addBricks() {
+            double xOffset = (getWidth() - (BRICK_WIDTH * NBRICKS_PER_ROW + BRICK_SEP * (NBRICKS_PER_ROW - 1))) / 2f;
 
-    /**
-     * ...
-     * @return boolean
-     */
-    private boolean lossConfirmed() {
-        if (ball.getY() > getHeight()) {
-            turns--;
-            lifeCounter[turns].setVisible(false);
-            return true;
-        }
-        return false;
-    }
+            for (int row = 0; row < NBRICK_ROWS; row++) {
+                for (int col = 0; col < NBRICKS_PER_ROW; col++) {
 
-    /**
-     * Check if the game
-     */
-    private void checkResult() {
-        if (bricksAmount == 0 || turns == 0) {
-            remove(ball);
-            remove(paddle);
-            printResultInfo();
-        }
-    }
-
-    /**
-     * ...
-     */
-    private void printResultInfo() {
-        GLabel resultInfo = new GLabel(
-                turns > 0 ? "Congrats! You win the game!" : "Sorry! You lost the game!");
-        resultInfo.setFont("Serif-30");
-        add(resultInfo, getWidth(), (getHeight() + resultInfo.getAscent()) / 2);
-        while (resultInfo.getX() > (getWidth() - resultInfo.getWidth()) / 2) {
-            resultInfo.move(-4, 0);
-            pause(PAUSE);
-        }
-    }
-
-    /**
-     * Setting ball location at the center of the app window.
-     */
-    private void centerBall() {
-        ball.setLocation(getWidth() / 2f - BALL_RADIUS,
-                getHeight() / 2f - BALL_RADIUS);
-    }
-
-
-    /**
-     * This method implements check, if the ball
-     * collides with some object and
-     *
-     * @return GObject|null Object, that collides with the ball.
-     */
-    private GObject getCollidingObject() {
-        boolean isUpDirection = vy < 0;
-        ArrayList<double[]> coords = getBallOuterCoords(isUpDirection);
-
-        GObject collider;
-
-        for (double[] coord : coords) {
-            for (double i = 0; i <= Math.abs(vy); i++) {
-                collider = getElementAt(coord[0], coord[1] + (isUpDirection ? -i : i));
-                if (collider != null) {
-                    return collider;
+                    GRect brick = new GRect(
+                            xOffset + col * (BRICK_WIDTH + BRICK_SEP),
+                            BRICK_Y_OFFSET + (row * (BRICK_HEIGHT + BRICK_SEP)),
+                            BRICK_WIDTH,
+                            BRICK_HEIGHT
+                    );
+                    brick.setColor(getBrickColor(row));
+                    brick.setFilled(true);
+                    add(brick);
                 }
             }
         }
 
-        return null;
-    }
-
-    /**
-     * This method creates ArrayList of ball coordinates depending on
-     * its direction. It serves for avoiding bags with incorrect ball-collision,
-     * that emerges with increasing y-velocity.
-     *
-     * @param isUpDirection, boolean - checks direction on y-coordinate
-     * @return ArrayList of arrays with coordinates.
-     */
-    private ArrayList<double[]> getBallOuterCoords(boolean isUpDirection) {
-        ArrayList<double[]> coords = new ArrayList<>();
-
-        if (isUpDirection) {
-            coords.add(new double[]{ball.getX(), ball.getY()}); // top left
-            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() - 1}); // top-middle
-            coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY()}); // top-right
-        } else {
-            coords.add(new double[]{ball.getX(), ball.getY() + 2 * BALL_RADIUS}); // bottom-left
-            coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS}); // bottom-middle
-            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS + 1}); // bottom-right
+        /**
+         * Change of the bricks color depending on the number of row.
+         *
+         * @param row - index number of the row.
+         * @return - color of the rows.
+         */
+        private Color getBrickColor(int row) {
+            if (row < 2) return Color.RED;
+            if (row == 2 || row == 3) return Color.ORANGE;
+            if (row == 4 || row == 5) return Color.YELLOW;
+            if (row == 6 || row == 7) return Color.GREEN;
+            return Color.CYAN;
         }
 
-        // coords.add(new double[]{ball.getX() - 1, ball.getY() + BALL_RADIUS}); // middle left
-        // coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS + 1, ball.getY() + BALL_RADIUS}); // middle right
 
-        return coords;
-    }
+        /**
+         * Method implements one turn of breakout game.
+         */
+        private void playGame() {
+            RandomGenerator rgen = RandomGenerator.getInstance();
+            if (rgen.nextBoolean(0.5)) {
+                vx = -vx;
+            }
+            vy = 20;
 
+            while (bricksAmount > 0) {
+                checkWallsChangeDirection();
 
-    /**
-     * This method implements check, if the ball
-     * touches the wall. It prevents ball flying away
-     * and change direction of the ball to opposite.
-     */
-    private void checkWallsChangeDirection() {
-        if (ball.getX() <= 0 || (ball.getX() >= getWidth() - ball.getWidth())) {
-            vx = -vx;
+                ball.move(vx, vy);
+                GObject collider = getCollidingObject();
+
+                if (collider == paddle || collider instanceof GLine) {
+                    vy = -vy;
+                    playSound("hit_paddle");
+                } else if (collider != null) {
+                    vy = -vy * Y_ACCELERATION;
+                    vx = rgen.nextDouble(1.0, MAX_X_VELOCITY);
+                    remove(collider);
+                    bricksAmount--;
+                }
+
+                if (vy > MAX_Y_VELOCITY) {
+                    vy = MAX_Y_VELOCITY;
+                }
+
+                pause(PAUSE);
+
+                if (lossConfirmed()) {
+                    break;
+                }
+              //  paddle.setLocation(ball.getX() - BALL_RADIUS * 2, getHeight() - PADDLE_Y_OFFSET);
+            }
         }
-        if (ball.getY() <= SCOREBAR_HEIGHT) {
-            vy = -vy;
+
+        /**
+         * @param type Type of the sound
+         */
+        private void playSound(String type) {
+            double[] clip = switch (type) {
+                case "hit_paddle" -> StdAudio.read("assets/sounds/hit_paddle.wav");
+                case "hit_brick" -> StdAudio.read("assets/sounds/hit_brick.wav");
+                case "game_over" -> StdAudio.read("assets/sounds/game_over.wav");
+                default -> null;
+            };
+
+            if (clip != null) {
+                BreakoutSound s = new BreakoutSound(clip);
+                s.start();
+            }
         }
-    }
 
-    /**
-     * ...
-     */
-    private void renderScoreBar() {
-        GLine separator = new GLine(0, SCOREBAR_HEIGHT, getWidth(), SCOREBAR_HEIGHT);
-        add(separator);
-
-        for (int i = 0; i < turns; i++) {
-            GImage lifeIcon = new GImage("assets/life.png");
-            lifeIcon.setLocation(lifeIcon.getWidth() * i, SCOREBAR_HEIGHT / 2f - lifeIcon.getHeight() / 2f);
-            add(lifeIcon);
-            lifeCounter[i] = lifeIcon;
+        /**
+         * @return boolean
+         */
+        private boolean lossConfirmed() {
+            if (ball.getY() > getHeight()) {
+                turns--;
+                lifeCounter[turns].setVisible(false);
+                return true;
+            }
+            return false;
         }
-    }
 
-    /**
-     * Creating of the ball, that will be
-     * animated later.
-     */
-    private void addBall() {
-        ball = new GOval(getWidth() / 2f - BALL_RADIUS,
-                getHeight() / 2f - BALL_RADIUS,
-                BALL_RADIUS * 2,
-                BALL_RADIUS * 2
-        );
-        ball.setColor(Color.BLACK);
-        ball.setFilled(true);
-        add(ball);
-    }
-
-
-    /**
-     * Creating of the paddle.
-     * It will move horizontally but always
-     * be on the same y-position.
-     */
-    private void addPaddle() {
-        paddle = new GRect(0,
-                getHeight() - PADDLE_Y_OFFSET,
-                PADDLE_WIDTH,
-                PADDLE_HEIGHT
-        );
-        paddle.setColor(Color.BLACK);
-        paddle.setFilled(true);
-        add(paddle);
-    }
-
-
-    /**
-     * Mouse moves control paddle moves on x-coordinate,
-     * mouse linked to the paddle-center.
-     */
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        paddle.setLocation(e.getX() - PADDLE_WIDTH / 2f, paddle.getY());
-        mouseExited(e);
-    }
-
-    /**
-     * This method implements check if the mouse
-     * is out of the application window
-     * and set position to the paddle in such cases,
-     * so that the paddle stays within the window.
-     */
-    public void mouseExited(MouseEvent e) {
-        if (e.getX() < PADDLE_WIDTH / 2) {
-            paddle.setLocation(0, paddle.getY());
+        /**
+         * Check if the game
+         */
+        private void checkResult() {
+            if (bricksAmount == 0 || turns == 0) {
+                remove(ball);
+                remove(paddle);
+                printResultInfo();
+            }
         }
-        if (e.getX() > getWidth() - PADDLE_WIDTH / 2) {
-            paddle.setLocation(getWidth() - PADDLE_WIDTH, paddle.getY());
-        }
-    }
 
-}
+        /**
+         * ...
+         */
+        private void printResultInfo() {
+            GLabel resultInfo = new GLabel(
+                    turns > 0 ? "Congrats! You win the game!" : "Sorry! You lost the game!");
+            resultInfo.setFont("Serif-30");
+            add(resultInfo, getWidth(), (getHeight() + resultInfo.getAscent()) / 2);
+            while (resultInfo.getX() > (getWidth() - resultInfo.getWidth()) / 2) {
+                resultInfo.move(-4, 0);
+                pause(PAUSE);
+            }
+        }
+
+        /**
+         * Setting ball location at the center of the app window.
+         */
+        private void centerBall() {
+            ball.setLocation(getWidth() / 2f - BALL_RADIUS,
+                    getHeight() / 2f - BALL_RADIUS);
+        }
+
+
+        /**
+         * This method implements check, if the ball
+         * collides with some object and
+         *
+         * @return GObject|null Object, that collides with the ball.
+         */
+        private GObject getCollidingObject() {
+            boolean isUpDirection = vy < 0;
+            ArrayList<double[]> coords = getBallOuterCoords(isUpDirection);
+
+            GObject collider;
+
+            for (double[] coord : coords) {
+                for (double i = 0; i <= Math.abs(vy); i++) {
+                    collider = getElementAt(coord[0], coord[1] + (isUpDirection ? -i : i));
+                    if (collider != null) {
+                        return collider;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * This method creates ArrayList of ball coordinates depending on
+         * its direction. It serves for avoiding bags with incorrect ball-collision,
+         * that emerges with increasing y-velocity.
+         *
+         * @param isUpDirection, boolean - checks direction on y-coordinate
+         * @return ArrayList of arrays with coordinates.
+         */
+        private ArrayList<double[]> getBallOuterCoords(boolean isUpDirection) {
+            ArrayList<double[]> coords = new ArrayList<>();
+
+            if (isUpDirection) {
+                coords.add(new double[]{ball.getX(), ball.getY()}); // top left
+                coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() - 1}); // top-middle
+                coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY()}); // top-right
+            } else {
+                coords.add(new double[]{ball.getX(), ball.getY() + 2 * BALL_RADIUS}); // bottom-left
+                coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS}); // bottom-middle
+                coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS + 1}); // bottom-right
+            }
+
+            // coords.add(new double[]{ball.getX() - 1, ball.getY() + BALL_RADIUS}); // middle left
+            // coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS + 1, ball.getY() + BALL_RADIUS}); // middle right
+
+            return coords;
+        }
+
+
+        /**
+         * This method implements check, if the ball
+         * touches the wall. It prevents ball flying away
+         * and change direction of the ball to opposite.
+         */
+        private void checkWallsChangeDirection() {
+            if (ball.getX() <= 0 || (ball.getX() >= getWidth() - ball.getWidth())) {
+                vx = -vx;
+            }
+            if (ball.getY() <= SCOREBAR_HEIGHT) {
+                vy = -vy;
+            }
+        }
+
+        /**
+         * ...
+         */
+        private void renderScoreBar() {
+            // separator
+            add(new GLine(0, SCOREBAR_HEIGHT, getWidth(), SCOREBAR_HEIGHT));
+
+            for (int i = 0; i < turns; i++) {
+                GImage lifeIcon = new GImage("assets/life.png");
+                lifeIcon.setLocation(lifeIcon.getWidth() * i, SCOREBAR_HEIGHT / 2f - lifeIcon.getHeight() / 2f);
+                add(lifeIcon);
+                lifeCounter[i] = lifeIcon;
+            }
+        }
+
+        /**
+         * Creating of the ball, that will be
+         * animated later.
+         */
+        private void addBall() {
+            ball = new GOval(getWidth() / 2f - BALL_RADIUS,
+                    getHeight() / 2f - BALL_RADIUS,
+                    BALL_RADIUS * 2,
+                    BALL_RADIUS * 2
+            );
+            ball.setColor(Color.BLACK);
+            ball.setFilled(true);
+            add(ball);
+        }
+
+
+        /**
+         * Creating of the paddle.
+         * It will move horizontally but always
+         * be on the same y-position.
+         */
+        private void addPaddle() {
+            paddle = new GRect(0,
+                    getHeight() - PADDLE_Y_OFFSET,
+                    PADDLE_WIDTH,
+                    PADDLE_HEIGHT
+            );
+            paddle.setColor(Color.BLACK);
+            paddle.setFilled(true);
+            add(paddle);
+        }
+
+
+        /**
+         * Mouse moves control paddle moves on x-coordinate,
+         * mouse linked to the paddle-center.
+         */
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            paddle.setLocation(e.getX() - PADDLE_WIDTH / 2f, paddle.getY());
+            mouseExited(e);
+        }
+
+        /**
+         * This method implements check if the mouse
+         * is out of the application window
+         * and set position to the paddle in such cases,
+         * so that the paddle stays within the window.
+         */
+        public void mouseExited(MouseEvent e) {
+            if (e.getX() < PADDLE_WIDTH / 2) {
+                paddle.setLocation(0, paddle.getY());
+            }
+            if (e.getX() > getWidth() - PADDLE_WIDTH / 2) {
+                paddle.setLocation(getWidth() - PADDLE_WIDTH, paddle.getY());
+            }
+        }
+
+    }
