@@ -18,7 +18,7 @@ public class Assignment3Part4 extends WindowProgram {
     private static final int BRICK_HEIGHT = 25;
     private static final int BRICK_WIDTH = 50;
     /* amount of bricks in the base */
-    private static final int BRICKS_IN_BASE = 15;
+    private static final int BRICKS_IN_BASE = 3;
     /* Space between the bricks*/
     private static final int BRICKS_SPACING = 5;
     /* calculating the width of the pyramid depending on bricks amount and bricks width*/

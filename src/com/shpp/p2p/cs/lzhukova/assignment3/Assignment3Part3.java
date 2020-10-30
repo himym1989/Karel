@@ -16,24 +16,21 @@ public class Assignment3Part3 extends TextProgram {
         base = readDouble("put a number: ");
         exponent = readInt("put an exponent: ");
 
-        println(raiseToPower(base, exponent));
+        println(raiseToPower());
     }
 
     /**
      * This method performs different exponentiation actions
      * depending on the fact, if the numbers positive,
      * negative or equals zero.
-     *
-     * @param x - double, that will be raised to power.
-     * @param y - int, an exponent
      * @return result of thе exponentiation.
      */
-    private double raiseToPower(double x, int y) {
+    private double raiseToPower() {
         // A negative exponent means how many times to divide by the number.
         // To change the sign ( minus to plus) of the exponent,
         // use the Reciprocal (1/base^exponent)
-        x = (exponent < 0) ? (1 / base) : base;
-        y = exponent < 0 ? -exponent : exponent;
+        double x = (exponent < 0) ? (1 / base) : base;
+        int y = exponent < 0 ? -exponent : exponent;
         double result = x;
 
         if (exponent == 0) {
