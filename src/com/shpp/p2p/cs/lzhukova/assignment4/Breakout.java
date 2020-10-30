@@ -90,10 +90,6 @@ public class Breakout extends WindowProgram {
      */
     private static final int NTURNS = 3;
 
-    /**
-     * Maximum y-velocity of the ball.
-     */
-    private static final double MAX_Y_VELOCITY = 20;
 
     /**
      * Maximum x-velocity of the ball.
@@ -102,9 +98,10 @@ public class Breakout extends WindowProgram {
 
 
     /**
-     * The acceleration in the y direction.
+     * Y-velocity of the ball.
      */
-    private static final double Y_ACCELERATION = 1.05;
+    private static final double Y_VELOCITY = 8;
+
 
     private GRect paddle;
     private GOval ball;
@@ -123,7 +120,6 @@ public class Breakout extends WindowProgram {
      */
     private int bricksAmount = NBRICK_ROWS * NBRICKS_PER_ROW;
 
-
     public void run() {
         addBricks();
         addPaddle();
@@ -131,13 +127,102 @@ public class Breakout extends WindowProgram {
 
         addMouseListeners();
 
+        startGame();
+
+    }
+
+    /**
+     * This method implements the whole cycle of game with three turns.
+     */
+    private void startGame() {
+        bricksAmount = NBRICK_ROWS * NBRICKS_PER_ROW;
+        turns = NTURNS;
+
         while (turns > 0 && bricksAmount > 0) {
             centerBall();
             waitForClick();
             playGame();
         }
-
         checkResult();
+    }
+
+    /**
+     * Method implements one turn of breakout game.
+     */
+    private void playGame() {
+        RandomGenerator rgen = RandomGenerator.getInstance();
+        if (rgen.nextBoolean(0.5)) {
+            vx = -vx;
+        }
+        vy = Y_VELOCITY;
+
+        while (bricksAmount > 0) {
+            checkWallsChangeDirection();
+
+            ball.move(vx, vy);
+            GObject collider = getCollidingObject();
+
+            checkColliderType(rgen, collider);
+
+            pause(PAUSE);
+
+            if (lossConfirmed()) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * Check of the collider type in order to perform actions
+     * depending on its type.
+     */
+    private void checkColliderType(RandomGenerator rgen, GObject collider) {
+        if (collider == paddle) {
+            vy = -vy;
+        } else if (collider != null) {
+            vy = -vy;
+            vx = rgen.nextDouble(1.0, MAX_X_VELOCITY);
+            remove(collider);
+            bricksAmount--;
+        }
+    }
+
+    /**
+     * Method implements check if the gamer lost the turn.
+     * It happens when the ball goes down the window height.
+     */
+    private boolean lossConfirmed() {
+        if (ball.getY() > getHeight()) {
+            turns--;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * When the game is over, its time to check if the gamer lost or won.
+     */
+    private void checkResult() {
+        if (bricksAmount == 0 || turns == 0) {
+            remove(ball);
+            remove(paddle);
+            printResultInfo();
+        }
+    }
+
+    /**
+     * Method implements result output.
+     * It depends on if the gamer lost or won.
+     */
+    private void printResultInfo() {
+        GLabel resultInfo = new GLabel(
+                turns > 0 ? "Congrats! You win the game!" : "Sorry! You lost the game!");
+        resultInfo.setFont("Serif-30");
+        add(resultInfo, getWidth(), (getHeight() + resultInfo.getAscent()) / 2);
+        while (resultInfo.getX() > (getWidth() - resultInfo.getWidth()) / 2) {
+            resultInfo.move(-4, 0);
+            pause(PAUSE);
+        }
     }
 
     /**
@@ -178,76 +263,6 @@ public class Breakout extends WindowProgram {
         return Color.CYAN;
     }
 
-
-    /**
-     * Method implements one turn of breakout game.
-     */
-    private void playGame() {
-        RandomGenerator rgen = RandomGenerator.getInstance();
-        if (rgen.nextBoolean(0.5)) {
-            vx = -vx;
-        }
-        vy = 7;
-
-        while (bricksAmount > 0) {
-            checkWallsChangeDirection();
-
-            ball.move(vx, vy);
-            GObject collider = getCollidingObject();
-
-            if (collider == paddle) {
-                vy = -vy;
-            } else if (collider != null) {
-                vy = -vy * Y_ACCELERATION;
-                vx = rgen.nextDouble(1.0, MAX_X_VELOCITY);
-                remove(collider);
-                bricksAmount--;
-            }
-
-            if (vy > MAX_Y_VELOCITY) {
-                vy = MAX_Y_VELOCITY;
-            }
-
-            pause(PAUSE);
-
-            if (lossConfirmed()) {
-                break;
-            }
-        }
-    }
-
-    private boolean lossConfirmed() {
-        if (ball.getY() > getHeight()) {
-            turns--;
-            return true;
-        }
-        return false;
-    }
-    /**
-     * Check if the game
-     */
-    private void checkResult() {
-        if (bricksAmount == 0 || turns == 0) {
-            remove(ball);
-            remove(paddle);
-            printResultInfo();
-        }
-    }
-
-    /**
-     * ...
-     */
-    private void printResultInfo() {
-        GLabel resultInfo = new GLabel(
-                turns > 0 ? "Congrats! You win the game!" : "Sorry! You lost the game!");
-        resultInfo.setFont("Serif-30");
-        add(resultInfo, getWidth(), (getHeight() + resultInfo.getAscent()) / 2);
-        while (resultInfo.getX() > (getWidth() - resultInfo.getWidth()) / 2) {
-            resultInfo.move(-4, 0);
-            pause(PAUSE);
-        }
-    }
-
     /**
      * Setting ball location at the center of the app window.
      */
@@ -255,7 +270,6 @@ public class Breakout extends WindowProgram {
         ball.setLocation(getWidth() / 2f - BALL_RADIUS,
                 getHeight() / 2f - BALL_RADIUS);
     }
-
 
     /**
      * This method implements check, if the ball
@@ -265,10 +279,7 @@ public class Breakout extends WindowProgram {
      */
     private GObject getCollidingObject() {
         boolean isUpDirection = vy < 0;
-        ArrayList<double[]> coords = getBallOuterCoords(isUpDirection);
-
-
-
+        ArrayList<double[]> coords = getBallOuterCoords();
         GObject collider;
 
         for (double[] coord : coords) {
@@ -287,28 +298,30 @@ public class Breakout extends WindowProgram {
      * This method creates ArrayList of ball coordinates depending on
      * its direction. It serves for avoiding bags with incorrect ball-collision,
      * that emerges with increasing y-velocity.
-     * @param isUpDirection, boolean - checks direction on y-coordinate
+     *
      * @return ArrayList of arrays with coordinates.
      */
-    private ArrayList<double[]> getBallOuterCoords(boolean isUpDirection) {
+    private ArrayList<double[]> getBallOuterCoords() {
+        boolean isUpDirection = vy < 0;
+        // adding additional bound to the ball in case to avoid the ball colliding itself.
+        int additionalBound = 1;
         ArrayList<double[]> coords = new ArrayList<>();
 
         if (isUpDirection) {
             coords.add(new double[]{ball.getX(), ball.getY()}); // top left
-            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() - 1}); // top-middle
+            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() - additionalBound}); // top-middle
             coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY()}); // top-right
         } else {
             coords.add(new double[]{ball.getX(), ball.getY() + 2 * BALL_RADIUS}); // bottom-left
             coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS}); // bottom-middle
-            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS + 1}); // bottom-right
+            coords.add(new double[]{ball.getX() + BALL_RADIUS, ball.getY() + 2 * BALL_RADIUS + additionalBound}); // br
         }
 
-        // coords.add(new double[]{ball.getX() - 1, ball.getY() + BALL_RADIUS}); // middle left
-        // coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS + 1, ball.getY() + BALL_RADIUS}); // middle right
+        // coords.add(new double[]{ball.getX() - additionalBound, ball.getY() + BALL_RADIUS}); // ml
+        // coords.add(new double[]{ball.getX() + 2 * BALL_RADIUS + additionalBound, ball.getY() + BALL_RADIUS}); // mr
 
         return coords;
     }
-
 
     /**
      * This method implements check, if the ball
@@ -338,7 +351,6 @@ public class Breakout extends WindowProgram {
         ball.setFilled(true);
         add(ball);
     }
-
 
     /**
      * Creating of the paddle.
@@ -380,6 +392,5 @@ public class Breakout extends WindowProgram {
             paddle.setLocation(getWidth() - PADDLE_WIDTH, paddle.getY());
         }
     }
-
 
 }
