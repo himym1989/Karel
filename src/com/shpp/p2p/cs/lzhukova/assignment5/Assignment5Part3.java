@@ -16,6 +16,7 @@ public class Assignment5Part3 extends TextProgram {
         initDictionary();
         while (true) {
             letters = readLine("put 3 letters from the car sign");
+            letters = letters.toLowerCase();
             printMatches();
         }
     }
