@@ -2,8 +2,11 @@ package com.shpp.p2p.cs.lzhukova.assignment5;
 
 import com.shpp.cs.a.console.TextProgram;
 
-import java.util.ArrayList;
 
+/**
+ * This program implements addition of long numbers,
+ * without special methods, just using Strings.
+ */
 public class Assignment5Part2 extends TextProgram {
     public void run() {
         /* Sit in a loop, reading numbers and adding them. */
@@ -29,9 +32,11 @@ public class Assignment5Part2 extends TextProgram {
 
         int i = n1.length() - 1;
         int j = n2.length() - 1;
+        //  rest, that will be used for counting like in addition in columns
         int rest = 0;
 
         while (i >= 0 || j >= 0) {
+
             int num1 = i >= 0 ? n1.charAt(i) - '0' : 0;
             int num2 = j >= 0 ? n2.charAt(j) - '0' : 0;
 

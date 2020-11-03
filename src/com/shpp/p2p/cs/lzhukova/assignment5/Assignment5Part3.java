@@ -7,6 +7,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
+/**
+ * This program implements the so-called road game.
+ * It takes three letters from the user and then looks for
+ * words in the dictionary, that can be made from this letters.
+ * But the letters in the word must be in the same order,
+ * as the user input them.
+ */
 public class Assignment5Part3 extends TextProgram {
     private static final String WORDS_FILE = "assets/dictionary.txt";
     private final ArrayList<String> dictionary = new ArrayList<>();
@@ -21,6 +29,9 @@ public class Assignment5Part3 extends TextProgram {
         }
     }
 
+    /**
+     * This method create a dictionary, using BufferedReader.
+     */
     private void initDictionary() {
         try {
             BufferedReader br = new BufferedReader(new FileReader(WORDS_FILE));
@@ -37,6 +48,9 @@ public class Assignment5Part3 extends TextProgram {
         }
     }
 
+    /**
+     * This method looks for matches and print them.
+     */
     private void printMatches() {
         for (String word : dictionary) {
             int firstLetter = word.indexOf(letters.charAt(0));

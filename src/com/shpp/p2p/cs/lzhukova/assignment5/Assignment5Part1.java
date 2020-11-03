@@ -5,28 +5,13 @@ import com.shpp.cs.a.console.TextProgram;
 
 /**
  * This program implements dividing English words into syllables.
+ * It takes a word as a parameter and return syllables number.
  */
 public class Assignment5Part1 extends TextProgram {
     private final int[] vowels = {'a', 'e', 'i', 'o', 'u', 'y'};
 
 
     public void run() {
-// uncomment to test different cases
-//        println("Unity" + " - " + syllablesIn("Unity") + " syllable(s)");
-//        println("Unite" + " - " + syllablesIn("Unite") + " syllable(s)");
-//        println("Growth" + " - " + syllablesIn("Growth") + " syllable(s)");
-//        println("Possibilities" + " - " + syllablesIn("Possibilities") + " syllable(s)");
-//        println("Nimble" + " - " + syllablesIn("Nimble") + " syllable(s)");
-//        println("Me" + " - " + syllablesIn("Me") + " syllable(s)");
-//        println("Beautiful" + " - " + syllablesIn("Beautiful") + " syllable(s)");
-//        println("Manatee" + " - " + syllablesIn("Manatee") + " syllable(s)");
-//        println("India" + " - " + syllablesIn("India") + " syllable(s)");
-//        println("Video" + " - " + syllablesIn("Video") + " syllable(s)");
-//        println("author" + " - " + syllablesIn("author") + " syllable(s)");
-//        println("fault" + " - " + syllablesIn("fault") + " syllable(s)");
-//        println("possible" + " - " + syllablesIn("possible") + " syllable(s)");
-//        println("unique" + " - " + syllablesIn("unique") + " syllable(s)");
-
 
         while (true) {
             String word = readLine("Enter a single word: ");
