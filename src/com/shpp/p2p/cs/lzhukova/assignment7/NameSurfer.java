@@ -59,17 +59,23 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
 
         if (cmd.equals("EnterPressed") || e.getSource() == graphButton) {
             try {
+
                 NameSurferDataBase base = new NameSurferDataBase(NAMES_DATA_FILE);
                 NameSurferEntry entry = base.findEntry(nameValue);
 
-                println(entry);
+                if (entry==null) {
+                    System.out.println("oops");
+                } else {
+                    graph.addEntry(entry);
+                    graph.update();
+                }
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
         }
 
         if (e.getSource() == clearButton) {
-            System.out.println("clear button pressed");//TODO--------------
+            graph.update();
         }
 
     }
