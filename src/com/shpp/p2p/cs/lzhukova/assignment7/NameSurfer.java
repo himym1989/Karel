@@ -20,7 +20,6 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
     private JButton clearButton;
     private NameSurferGraph graph;
 
-
     /**
      * This method has the responsibility for reading in the data base
      * and initializing the interactors at the top of the window.
@@ -35,17 +34,16 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
         nameField.setActionCommand("EnterPressed");
         nameField.addActionListener(this);
 
-
         graphButton = new JButton("Graph");
         add(graphButton, NORTH);
 
         clearButton = new JButton("Clear");
         add(clearButton, NORTH);
 
-        addActionListeners();
-
         graph = new NameSurferGraph();
         add(graph);
+
+        addActionListeners();
     }
 
     /**
@@ -59,11 +57,10 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
 
         if (cmd.equals("EnterPressed") || e.getSource() == graphButton) {
             try {
-
                 NameSurferDataBase base = new NameSurferDataBase(NAMES_DATA_FILE);
                 NameSurferEntry entry = base.findEntry(nameValue);
 
-                if (entry==null) {
+                if (entry == null) {
                     System.out.println("oops");
                 } else {
                     graph.addEntry(entry);
@@ -75,7 +72,7 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
         }
 
         if (e.getSource() == clearButton) {
-            graph.update();
+            graph.clear();
         }
 
     }

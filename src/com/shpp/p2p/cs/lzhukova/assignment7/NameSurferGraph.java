@@ -12,6 +12,7 @@ package com.shpp.p2p.cs.lzhukova.assignment7;
 import acm.graphics.GCanvas;
 import acm.graphics.GLabel;
 import acm.graphics.GLine;
+import acm.graphics.GRect;
 
 import java.awt.*;
 import java.awt.event.ComponentEvent;
@@ -35,7 +36,8 @@ public class NameSurferGraph extends GCanvas
      * Clears the list of name surfer entries stored inside this class.
      */
     public void clear() {
-        removeAll();
+        entries.clear();
+        update();
     }
 
     /**
@@ -45,15 +47,21 @@ public class NameSurferGraph extends GCanvas
      */
     public void addEntry(NameSurferEntry entry) {
         entries.add(entry);
-
     }
 
+    /**
+     * Rendering Entries, sitting in the loop.
+     * Each entry should have its own color.
+     */
     private void renderEntries() {
 
         // height of available vertical scale
         double verticalScale = getHeight() - 2 * GRAPH_MARGIN_SIZE;
+        Color[] colors = getColors();
 
         for (NameSurferEntry entry : entries) {
+            int entryColor = entries.indexOf(entry) % 4;
+
             for (int i = 0; i < NDECADES; i++) {
 
                 boolean isLastDecade = i == NDECADES - 1;
@@ -65,21 +73,49 @@ public class NameSurferGraph extends GCanvas
                 final int decadeNum = getWidth() / NDECADES;
                 final int bottomPoint = getHeight() - GRAPH_MARGIN_SIZE;
 
+                // rendering a graph
                 GLine graphLine = new GLine(
                         i * decadeNum,
-                        thisRankPoint < 1 ? bottomPoint : thisRankPoint + GRAPH_MARGIN_SIZE,
+                        entry.getRank(i) < 1 ? bottomPoint : thisRankPoint + GRAPH_MARGIN_SIZE,
                         isLastDecade ? i * decadeNum : (i + 1) * decadeNum,
-                        nextRankPoint < 1 ? bottomPoint : nextRankPoint + GRAPH_MARGIN_SIZE
+                        nextRank < 1 ? bottomPoint : nextRankPoint + GRAPH_MARGIN_SIZE
                 );
-                graphLine.setColor(Color.RED);
+                graphLine.setColor(colors[entryColor]);
                 add(graphLine);
 
+                // rendering a point on the graph scales
+                int scalePointWidth = 4;
+                GRect scalePoint = new GRect(
+                        i * decadeNum - scalePointWidth / 2f,
+                        entry.getRank(i) < 1 ? bottomPoint : thisRankPoint + GRAPH_MARGIN_SIZE,
+                        scalePointWidth, scalePointWidth
+                );
+                scalePoint.setColor(colors[entryColor]);
+                scalePoint.setFilled(true);
+                add(scalePoint);
+
+                // rendering a label with name and popularity value
                 GLabel name = new GLabel(entry.getName() + " " + entry.getRank(i));
                 name.setFont("Verdana-9");
-                add(name, i * decadeNum, (thisRankPoint < 1 ? bottomPoint : thisRankPoint + GRAPH_MARGIN_SIZE));
+                name.setColor(colors[entryColor]);
+                add(name, i * decadeNum, (entry.getRank(i) < 1 ? bottomPoint : thisRankPoint + GRAPH_MARGIN_SIZE));
             }
-
         }
+    }
+
+    /**
+     * Method creates colors array for entries.
+     *
+     * @return array of colors.
+     */
+    private Color[] getColors() {
+        Color[] colors = {
+                Color.BLUE,
+                Color.RED,
+                Color.MAGENTA,
+                Color.BLACK
+        };
+        return colors;
     }
 
 
@@ -91,12 +127,16 @@ public class NameSurferGraph extends GCanvas
      * the size of the canvas changes.
      */
     public void update() {
-        clear();
+        removeAll();
         renderGrid();
         renderEntries();
     }
 
+    /**
+     * Rendering a grid for the graph
+     */
     private void renderGrid() {
+
         GLine horizontalTopLine = new GLine(
                 0,
                 GRAPH_MARGIN_SIZE,
@@ -111,19 +151,18 @@ public class NameSurferGraph extends GCanvas
                 getHeight() - GRAPH_MARGIN_SIZE);
         add(horizontalBottomLine);
 
-
         for (int i = 0; i < NDECADES; i++) {
             GLine verticalLine = new GLine(
-                    i * (getWidth() / NDECADES),
+                    i * (double) (getWidth() / NDECADES),
                     0,
-                    i * (getWidth() / NDECADES),
+                    i * (double) (getWidth() / NDECADES),
                     getHeight());
             add(verticalLine);
 
             String decadeValue = String.valueOf(START_DECADE + i * 10);
             GLabel decade = new GLabel(decadeValue);
             decade.setFont("Times New Roman-" + GRAPH_MARGIN_SIZE);
-            add(decade, i * (getWidth() / NDECADES), getHeight() - decade.getDescent());
+            add(decade, i * (double) (getWidth() / NDECADES), getHeight() - decade.getDescent());
         }
 
     }
