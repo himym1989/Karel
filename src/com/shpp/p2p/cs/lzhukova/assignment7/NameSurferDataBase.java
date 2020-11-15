@@ -31,7 +31,7 @@ public class NameSurferDataBase implements NameSurferConstants {
     public NameSurferDataBase(String filename) throws IOException {
         nameBase = new HashMap<>();
 
-        BufferedReader br = new BufferedReader(new FileReader(NAMES_DATA_FILE));
+        BufferedReader br = new BufferedReader(new FileReader(filename));
 
         while ((line = br.readLine()) != null) {
             NameSurferEntry entry = new NameSurferEntry(line);

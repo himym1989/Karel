@@ -19,6 +19,10 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
     private JButton graphButton;
     private JButton clearButton;
     private NameSurferGraph graph;
+    private NameSurferDataBase base;
+
+    private JDialog errorDialog;
+    private JLabel errorLabel;
 
     /**
      * This method has the responsibility for reading in the data base
@@ -43,7 +47,40 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
         graph = new NameSurferGraph();
         add(graph);
 
+        try {
+            base = new NameSurferDataBase(NAMES_DATA_FILE);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+
+        addErrorDialog();
         addActionListeners();
+    }
+
+
+    /**
+     * This method is called if the input name is null or already exists.
+     */
+    private void addErrorDialog() {
+        errorDialog = new JDialog();
+        errorDialog.setSize(300, 100);
+        final int x = (getWidth() - errorDialog.getWidth()) / 2;
+        final int y = (getHeight() - errorDialog.getHeight()) / 2;
+        errorDialog.setLocation(x, y);
+
+        errorLabel = new JLabel("msg", SwingConstants.CENTER);
+        errorDialog.add(errorLabel);
+    }
+
+
+    /**
+     * Method set text to the error label and makes error dialog visible.
+     *
+     * @param msg, string, that will appear in the error dialog.
+     */
+    private void showError(String msg) {
+        errorLabel.setText(msg);
+        errorDialog.setVisible(true);
     }
 
     /**
@@ -56,24 +93,21 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
         String nameValue = nameField.getText();
 
         if (cmd.equals("EnterPressed") || e.getSource() == graphButton) {
-            try {
-                NameSurferDataBase base = new NameSurferDataBase(NAMES_DATA_FILE);
-                NameSurferEntry entry = base.findEntry(nameValue);
 
-                if (entry == null) {
-                    System.out.println("oops");
-                } else {
-                    graph.addEntry(entry);
-                    graph.update();
-                }
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
+            NameSurferEntry entry = base.findEntry(nameValue);
+
+            if (entry == null) {
+                showError("No name found!");
+            } else if (graph.hasEntry(entry)) {
+                showError("This name is already on the graph!");
+            } else {
+                graph.addEntry(entry);
+                graph.update();
             }
         }
 
         if (e.getSource() == clearButton) {
             graph.clear();
         }
-
     }
 }

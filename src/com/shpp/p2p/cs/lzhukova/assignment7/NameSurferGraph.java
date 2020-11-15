@@ -50,6 +50,13 @@ public class NameSurferGraph extends GCanvas
     }
 
     /**
+     * Check if the input value is already on the graph.
+     * @return boolean
+     */
+    public boolean hasEntry(NameSurferEntry entry) {
+        return entries.contains(entry);
+    }
+    /**
      * Rendering Entries, sitting in the loop.
      * Each entry should have its own color.
      */
@@ -109,13 +116,12 @@ public class NameSurferGraph extends GCanvas
      * @return array of colors.
      */
     private Color[] getColors() {
-        Color[] colors = {
+        return new Color[]{
                 Color.BLUE,
                 Color.RED,
                 Color.MAGENTA,
                 Color.BLACK
         };
-        return colors;
     }
 
 
