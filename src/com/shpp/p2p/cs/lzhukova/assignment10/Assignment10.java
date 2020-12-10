@@ -14,11 +14,11 @@ import java.util.regex.Pattern;
 public class Assignment10 {
     public static void main(String[] args) {
         System.out.println(args[0]);
+        String formula = args[0];
         Calculator calc = new Calculator();
-        calc.calculate(args[0]);
+        calc.calculate(formula);
     }
 }
-//  java -cp src com/shpp/p2p/cs/lzhukova/assignment10/Assignment10 1+2
 
 class Calculator {
     private static final Map<Character, Integer> operatorPriority = new HashMap<>() {
@@ -32,10 +32,21 @@ class Calculator {
     };
 
     // stack will keep math signs of the expression
-    private final Stack<Character> mathSigns = new Stack<>();
+    private final Stack<Character> Operators = new Stack<>();
 
     // arraylist will keep numbers and signs as well
-    private final ArrayList<String> numAndSigns = new ArrayList<>();
+    private final ArrayList<String> numAndOperators = new ArrayList<>();
+
+    public void calculate(String arg) {
+
+        sortOperatorsAndNums(arg);
+        run();
+    }
+
+
+    private boolean isOperator(String val) {
+        return val.matches("[\\-\\+\\*\\^\\/]");
+    }
 
     /**
      * This method implements first stage of shunting-yard algorithm:
@@ -49,78 +60,85 @@ class Calculator {
      *
      * @param arg the math expression.
      */
-    private void sortSignsAndNums(String arg) {
-        Pattern pattern = Pattern.compile("([0-9]+|[\\-\\+\\*\\^\\/])");
+    private void sortOperatorsAndNums(String arg) {
+        Pattern pattern = Pattern.compile("((\\-?\\d*\\.?\\d+)|[\\-\\+\\*\\^\\/])");
         Matcher matcher = pattern.matcher(arg);
+
+        // check if the first number is negative;
+        if (arg.charAt(0) == '-') {
+            numAndOperators.add("0");
+        }
+        String previousVal = null;
+        boolean isNegative = false;
+
         while (matcher.find()) {
             String val = matcher.group();
-            boolean isSign = val.matches("[\\-\\+\\*\\^\\/]");
-
-            if (isSign) {
-                addSign(val.charAt(0));
-            } else {
-                numAndSigns.add(val);
+            if (val.equals("-") && isOperator(previousVal)) {
+                isNegative = true;
+                continue;
             }
+            if (isOperator(val)) {
+                addOperator(val.charAt(0));
+            } else {
+                if (isNegative) {
+                    numAndOperators.add("-" + val);
+                    isNegative = false;
+                } else {
+                    numAndOperators.add(val);
+                }
+            }
+            previousVal = val;
         }
-        while (!mathSigns.empty()) {
-            numAndSigns.add(mathSigns.pop().toString());
+        while (!Operators.empty()) {
+            numAndOperators.add(Operators.pop().toString());
         }
     }
+
+    private void run() {
+        Stack<String> expression = new Stack<>();
+        double result = 0;
+
+        while (numAndOperators.size() != 0) {
+            String removedItem = numAndOperators.remove(0);
+
+            if (removedItem.matches("(\\-?\\d*\\.?\\d+)")) {
+                expression.push(removedItem);
+            } else {
+                double secondOperand = Double.parseDouble(expression.pop());
+                double firstOperand = Double.parseDouble(expression.pop());
+
+                result = math(removedItem.charAt(0), firstOperand, secondOperand);
+                expression.push(String.valueOf(result));
+            }
+        }
+        System.out.println("result of expression " + result);
+
+    }
+
 
     /**
      * This method implements:
      * - check of signs priority;
      * - signs moves from stack to arraylist, if it is needed.
      */
-    private void addSign(Character sign) {
-        int signPriority = operatorPriority.get(sign);
-        int prevSignPriority = 3;
+    private void addOperator(Character operator) {
+        int operatorPriority = Calculator.operatorPriority.get(operator);
+        int prevOperatorPriority = 3;
 
-        while ((prevSignPriority > signPriority) && !mathSigns.empty()) {
-            Character prevSign = mathSigns.pop();
-            prevSignPriority = operatorPriority.get(prevSign);
-            if (prevSignPriority >= signPriority) {
-                numAndSigns.add(prevSign.toString());
+        while ((prevOperatorPriority > operatorPriority) && !Operators.empty()) {
+            Character prevOperator = Operators.pop();
+            prevOperatorPriority = Calculator.operatorPriority.get(prevOperator);
+            if (prevOperatorPriority >= operatorPriority) {
+                numAndOperators.add(prevOperator.toString());
             } else {
-                mathSigns.push(prevSign);
+                Operators.push(prevOperator);
             }
         }
-        mathSigns.push(sign);
+        Operators.push(operator);
     }
 
-    public void calculate(String arg) {
-        mathSigns.clear();
-        numAndSigns.clear();
-        sortSignsAndNums(arg);
-        run();
-    }
-
-    private void run() {
-        Stack<String> expression = new Stack<>();
-        int result = 0;
-        System.out.println(numAndSigns);
-
-        while (numAndSigns.size() != 0) {
-            String removedItem = numAndSigns.remove(0);
-
-            if (removedItem.matches("[0-9]+")) {
-                expression.push(removedItem);
-            } else {
-                int secondOperand = Integer.parseInt(expression.pop());
-                int firstOperand = Integer.parseInt(expression.pop());
-                result = math(removedItem.charAt(0), firstOperand, secondOperand);
-                expression.push(String.valueOf(result));
-                System.out.println(result);
-            }
-        }
-        System.out.println("res " + result);
-
-//        System.out.println(numAndSigns);
-//        System.out.println(expression);
-    }
-
-    private int math(Character sign, int x, int y) {
-        switch (sign) {
+    private double math(Character operator, double x, double y) {
+        switch (operator) {
             case ('+'):
                 return x + y;
             case ('-'):
@@ -130,8 +148,8 @@ class Calculator {
             case ('/'):
                 return x / y;
             case ('^'):
-                return (int) Math.pow(x, y);
+                return Math.pow(x, y);
         }
-        throw new IllegalStateException("Unexpected sign: " + sign);
+        throw new IllegalStateException("Unexpected operator: " + operator);
     }
 }
