@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 class Calculator {
     // stack will keep math signs of the expression
-    private final Stack<Character> Operators = new Stack<>();
+    private final Stack<Character> operators = new Stack<>();
 
     // arraylist will keep numbers and signs as well
     private final ArrayList<String> numAndOperators = new ArrayList<>();
@@ -38,7 +38,7 @@ class Calculator {
      * @param variables hashmap, that keeps variables with their values.
      */
     private void sortOperatorsAndNums(String arg, HashMap<String, Double> variables) {
-        Pattern pattern = Pattern.compile("((\\d*\\.?\\d+)|[a-zA-Z]|" + operations.getRegexp() + ")");
+        Pattern pattern = Pattern.compile("((\\d*\\.?\\d+)|[a-zA-Z]|" + operations.buildRegexp() + ")");
         Matcher matcher = pattern.matcher(arg);
 
         // check if the first number is negative;
@@ -56,11 +56,10 @@ class Calculator {
 
             // if there are two operators in a row, and the second is "-"
             // it means, that the next number will be negative;
-            if (val.equals("-") && isOperator(previousVal)) {
+            if (val.equals("-") && (isOperator(previousVal) && !previousVal.equals(")"))) { //todo как упростить??
                 isNegative = true;
                 continue;
             }
-
             if (isOperator(val)) {
                 addOperator(val.charAt(0));
             } else if (val.matches("[a-zA-Z]")) {
@@ -74,17 +73,27 @@ class Calculator {
                 }
             }
             previousVal = val;
+            System.out.println(operators.toString());
+
         }
-        while (!Operators.empty()) {
-            numAndOperators.add(Operators.pop().toString());
+        System.out.println(numAndOperators.toString());
+
+        while (!operators.empty()) {
+            numAndOperators.add(operators.pop().toString());
         }
+
+        numAndOperators.removeIf(o -> o.equals("(") || o.equals(")"));
     }
 
     /**
      * This method checks if the value is an operator or not.
      */
     private boolean isOperator(String val) {
-        return val != null && val.matches(operations.getRegexp());
+        return val != null && val.matches(operations.buildRegexp());
+    }
+
+    private boolean isGroupOperator(String val) {
+        return val != null && (val.equals("(") || val.equals(")"));
     }
 
     /**
@@ -118,23 +127,38 @@ class Calculator {
      * - signs' moves from stack to arraylist, if it is needed.
      */
     private void addOperator(Character operator) {
+
+        if (isGroupOperator(operator.toString())) {
+            if (!operators.isEmpty() && operator.equals(')')) {
+                Character prevOperator;
+                do {
+                    prevOperator = operators.pop();
+                    numAndOperators.add(prevOperator.toString());
+                }
+                while (!operators.isEmpty() && prevOperator != '(');
+            }
+            return;
+        }
+
         MathOperation operation = operations.map.get(operator.toString());
 
         int operatorPriority = operation.getPriority();
         // priority of the previous operator, that is currently at the top of the stack
         int prevOperatorPriority = 3;
+        while ((prevOperatorPriority > operatorPriority) && !operators.empty()) {
+            Character prevOperator = operators.pop();
 
-        while ((prevOperatorPriority > operatorPriority) && !Operators.empty()) {
-            Character prevOperator = Operators.pop();
             MathOperation prevOperation = operations.map.get(prevOperator.toString());
+
             prevOperatorPriority = prevOperation.getPriority();
             if (prevOperatorPriority >= operatorPriority) {
                 numAndOperators.add(prevOperator.toString());
             } else {
-                Operators.push(prevOperator);
+                operators.push(prevOperator);
             }
         }
-        Operators.push(operator);
+
+        operators.push(operator);
     }
 
     /**

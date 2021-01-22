@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 class MathOperations {
+
     Map<String, MathOperation> map = new HashMap<>();
 
     MathOperations() {
@@ -13,9 +14,11 @@ class MathOperations {
         add(new Subtraction());
         add(new Exponentiation());
         add(new Multiplication());
+        add(new Group(Group.START_GROUP));
+        add(new Group(Group.END_GROUP));
     }
 
-    String getRegexp() {
+    String buildRegexp() {
         Set<String> keys = map.keySet();
         StringBuilder regexp = new StringBuilder("[");
         for (String key : keys) {
@@ -38,6 +41,32 @@ abstract class MathOperation {
     public abstract String getOperator();
 
     public abstract double calc(double x, double y);
+}
+
+class Group extends MathOperation {
+    static String START_GROUP = "(";
+    static String END_GROUP = ")";
+
+    String _operator;
+
+    Group(String operator) {
+        this._operator = operator;
+    }
+
+    @Override
+    public int getPriority() {
+        return -1;
+    }
+
+    @Override
+    public String getOperator() {
+        return _operator;
+    }
+
+    @Override
+    public double calc(double x, double y) {
+        return 0;
+    }
 }
 
 class Addition extends MathOperation {

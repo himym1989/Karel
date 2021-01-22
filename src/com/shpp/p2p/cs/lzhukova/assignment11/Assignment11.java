@@ -27,8 +27,10 @@ public class Assignment11 {
                     "The result of the numerical expression "
                             + formula + (variables.isEmpty() ? "" : ", where " + variables.entrySet())
                             + " is " + calc.calculate(formula, variables) + ".");
+            System.out.println();
         } catch (Exception e) {
-            System.out.println("Illegal math expression");
+            throw e;
+//            System.out.println("Illegal math expression");
         }
     }
 
