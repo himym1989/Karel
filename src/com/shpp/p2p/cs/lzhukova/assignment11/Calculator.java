@@ -21,9 +21,24 @@ class Calculator {
      * transforming infix to postfix expression at first.
      */
     public double calculate(String arg, HashMap<String, Double> variables) throws Exception {
-        sortOperatorsAndNums(arg, variables);
-        return run();
+                sortOperatorsAndNums(arg, variables);
+                return run();
     }
+
+    public boolean parenthesisCheck(String arg) {
+        int leftParenthesis = 0;
+        int rightParenthesis = 0;
+        for (int i = 0; i < arg.length(); i++) {
+            if (arg.charAt(i) == '(') {
+                leftParenthesis += 1;
+            }
+            if (arg.charAt(i) == ')') {
+                rightParenthesis += 1;
+            }
+        }
+        return leftParenthesis == rightParenthesis;
+    }
+
 
     /**
      * This method implements first stage of shunting-yard algorithm:
@@ -179,9 +194,6 @@ class Calculator {
             }
 
 
-//            if(prevOperator.matches("\\(")){
-//                operators.push(prevOperator);
-//            }
             if (prevOperatorPriority >= operatorPriority) {
                 numAndOperators.add(prevOperator);
             } else {

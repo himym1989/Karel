@@ -17,23 +17,31 @@ public class Assignment11 {
     /* variables, that will be parsed from the command line*/
     private static HashMap<String, Double> variables = new HashMap();
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         Calculator calc = new Calculator();
 
         try {
             String formula = args[0];
             variables = extractVariables(args);
-            System.out.println(
-                    "The result of the numerical expression "
-                            + formula + (variables.isEmpty() ? "" : ", where " + variables.entrySet())
-                            + " is " + calc.calculate(formula, variables) + ".");
-            System.out.println();
+            calc.parenthesisCheck(formula);
+            if (!calc.parenthesisCheck(formula)) {
+                System.out.println("One of the parenthesis in your expression is missed. Check and try again.");
+            } else {
+                System.out.println(
+                        "The result of the numerical expression "
+                                + formula + (variables.isEmpty() ? "" : ", where " + variables.entrySet())
+                                + " is " + calc.calculate(formula, variables) + ".");
+            }
         } catch (Exception e) {
-            System.out.println("Something went wrong. Check your expression and try again");
-            throw e;
+            if (args.length == 0) {
+                System.out.println("You haven't input any expression");
+            } else {
+                System.out.println("Something went wrong. Check your expression and try again");
+            }
         }
     }
+
 
     /**
      * This method implements parsing variables from the command line and
