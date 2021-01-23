@@ -7,7 +7,8 @@ import java.util.regex.Pattern;
 
 /**
  * This program is a calculator, that implements evaluation of numeric expressions using shunting-yard algorithm.
- * It supports such operators as: "-", "+", "/", "*" and "^".
+ * It supports such operators as: "-", "+", "/", "*" and "^"
+ * and following math functions: sin, cos, tan, atan, log10, log2, sqrt.
  * It handles negative numbers as well as fractions.
  */
 
@@ -16,7 +17,7 @@ public class Assignment11 {
     /* variables, that will be parsed from the command line*/
     private static HashMap<String, Double> variables = new HashMap();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         Calculator calc = new Calculator();
 
@@ -29,8 +30,8 @@ public class Assignment11 {
                             + " is " + calc.calculate(formula, variables) + ".");
             System.out.println();
         } catch (Exception e) {
+            System.out.println("Something went wrong. Check your expression and try again");
             throw e;
-//            System.out.println("Illegal math expression");
         }
     }
 
@@ -38,7 +39,7 @@ public class Assignment11 {
      * This method implements parsing variables from the command line and
      * saving them to the hashmap, where key is a variable and value is a number value of the variable.
      */
-    private static HashMap<String, Double> extractVariables(String[] args) {
+    private static HashMap<String, Double> extractVariables(String[] args) throws Exception {
         /* save the value before putting it to the hashmap */
         String buffer;
         String key = "";

@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+
+/**
+ * This class contains math operations, their implementation and priority;
+ */
 class MathOperations {
 
     Map<String, MathOperation> map = new HashMap<>();
@@ -18,6 +22,7 @@ class MathOperations {
         add(new Group(Group.END_GROUP));
     }
 
+    // method builds a regular expression with math operations
     String buildRegexp() {
         Set<String> keys = map.keySet();
         StringBuilder regexp = new StringBuilder("[");
@@ -29,12 +34,17 @@ class MathOperations {
         return regexp.toString();
     }
 
+    /**
+     * Adding a math operation to the hashmap, which keeps all the operations;
+     */
     void add(MathOperation op) {
         map.put(op.getOperator(), op);
     }
 }
 
-
+/**
+ * abstract class, that describes common methods for all math operations;
+ */
 abstract class MathOperation {
     public abstract int getPriority();
 
@@ -55,7 +65,7 @@ class Group extends MathOperation {
 
     @Override
     public int getPriority() {
-        return -1;
+        return -5;
     }
 
     @Override
