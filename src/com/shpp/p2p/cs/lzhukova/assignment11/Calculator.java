@@ -21,8 +21,8 @@ class Calculator {
      * transforming infix to postfix expression at first.
      */
     public double calculate(String arg, HashMap<String, Double> variables) throws Exception {
-                sortOperatorsAndNums(arg, variables);
-                return run();
+        sortOperatorsAndNums(arg, variables);
+        return run();
     }
 
     public boolean parenthesisCheck(String arg) {
@@ -92,14 +92,17 @@ class Calculator {
                 }
             }
             previousVal = val;
-
+            System.out.println(operators);
         }
 
         while (!operators.empty()) {
             numAndOperators.add(operators.pop());
         }
 
+        // remove remaining parentheses from the arraylist
         numAndOperators.removeIf(o -> o.equals("(") || o.equals(")"));
+        System.out.println(numAndOperators);
+
     }
 
     /**
@@ -109,16 +112,22 @@ class Calculator {
         return val != null && val.matches(operations.buildRegexp());
     }
 
+    /**
+     * This method checks if the value is a group operator or not.
+     */
     private boolean isGroupOperator(String val) {
         return val != null && (val.equals("(") || val.equals(")"));
     }
 
+    /**
+     * This method checks if the value is a function or not.
+     */
     private boolean isFunction(String val) {
         return val != null && val.matches(functions.buildRegexp());
     }
 
     /**
-     * Method, that starts the calculation.
+     * Method, that starts the calculation directly.
      *
      * @return double, result of evaluation.
      */
@@ -154,7 +163,15 @@ class Calculator {
      * - signs' moves from stack to arraylist, if it is needed.
      */
     private void addOperator(String operator) {
+        MathOperation operation = operations.map.get(operator);
+        MathFunction function = functions.funcMap.get(operator);
 
+        int operatorPriority;
+        // priority of the previous operator, that is currently at the top of the stack
+        int prevOperatorPriority;
+
+        // check for parenthesis in an expression and adding all the operators between them
+        // to the arraylist
         if (isGroupOperator(operator)) {
             if (!operators.isEmpty() && operator.equals(")")) {
                 String prevOperator;
@@ -163,49 +180,48 @@ class Calculator {
                     numAndOperators.add(prevOperator);
                 }
                 while (!operators.isEmpty() && !prevOperator.equals("("));
+                numAndOperators.add(operator);
+            } else {
+                operators.push(operator);
+
             }
-            operators.push(operator);
             return;
         }
 
-        MathOperation operation = operations.map.get(operator);
-        MathFunction function = functions.funcMap.get(operator);
-
-
-        int operatorPriority;
+        // check if "operator" is an operator or a function for getting its priority
         if (isOperator(operator)) {
             operatorPriority = operation.getPriority();
         } else {
             operatorPriority = function.getPriority();
         }
-        // priority of the previous operator, that is currently at the top of the stack
-        int prevOperatorPriority = 4;
 
-        while ((prevOperatorPriority > operatorPriority) && !operators.empty()) {
-            String prevOperator = operators.pop();
+        if (!operators.empty()) {
+            do {
+                String prevOperator = operators.pop();
 
-            MathOperation prevOperation = operations.map.get(prevOperator);
-            MathFunction preVFunction = functions.funcMap.get(prevOperator);
+                MathOperation prevOperation = operations.map.get(prevOperator);
+                MathFunction preVFunction = functions.funcMap.get(prevOperator);
 
-            if (isFunction(prevOperator)) {
-                prevOperatorPriority = preVFunction.getPriority();
-            } else {
-                prevOperatorPriority = prevOperation.getPriority();
+                if (isFunction(prevOperator)) {
+                    prevOperatorPriority = preVFunction.getPriority();
+                } else {
+                    prevOperatorPriority = prevOperation.getPriority();
+                }
+
+                if (prevOperatorPriority >= operatorPriority) {
+                    numAndOperators.add(prevOperator);
+                } else {
+                    operators.push(prevOperator);
+                }
             }
-
-
-            if (prevOperatorPriority >= operatorPriority) {
-                numAndOperators.add(prevOperator);
-            } else {
-                operators.push(prevOperator);
-            }
+            while (prevOperatorPriority > operatorPriority && !operators.empty()) ;
         }
 
         operators.push(operator);
     }
 
     /**
-     * Method implements doing math depending on an operator;
+     * Method implements doing math depending on an operator or function;
      *
      * @return double, result of math operation;
      */
