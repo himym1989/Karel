@@ -24,8 +24,8 @@ public class Assignment11 {
         vars = extractVars(args);
 
         System.out.println("The result of math expression " + mathExpression +
-                (vars.isEmpty() ? "" : ", where variables are " + vars + " is...." +
-                        calculator.calculate(mathExpression, vars)));
+                (vars.isEmpty() ? "" : ", where variables are " + vars) + " is...." +
+                calculator.calculate(mathExpression, vars));
     }
 
     private static void checkArguments(String[] args) throws Exception {
@@ -48,7 +48,8 @@ public class Assignment11 {
             String[] buffer = args[i].split("=");
 
             if (buffer.length <= 1) {
-                throw new Exception("Check your variables. Maybe you haven't input some variable's value.");
+                System.err.println("Check your variables. Maybe you haven't input some variable's value.");
+                System.exit(-1);
             } else {
                 String var = buffer[0].toLowerCase();
                 double value = Double.parseDouble(buffer[1]);

@@ -1,37 +1,73 @@
 package com.shpp.p2p.cs.lzhukova.assignment11;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Calculator {
-
     MathOperations operations = new MathOperations();
     MathFunctions functions = new MathFunctions();
-
-    private ArrayList<String> expression = new ArrayList<>();
-
+    private LinkedList<String> expression = new LinkedList<>();
+    ExpressionBuffer buffer = new ExpressionBuffer(expression);
 
     public Double calculate(String mathExpression, HashMap<String, Double> vars) throws Exception {
         expression = mathExpressionAnalyze(mathExpression, vars);
-        return doMath(expression, vars);
+        return evaluation(expression, vars);
     }
 
-    private double doMath(ArrayList<String> expression, HashMap<String, Double> vars) {
-        while (expression.size() != 1) {
-            for (int i = 0; i < expression.size(); i++) {
-                String element = expression.get(i);
-                if (isOperator(element)) {
-                }
+
+    // Grammar:
+    // E(expression) -> T{+/-}T;
+    // T(term)       -> F{*/*}F;
+    // F(factor)     -> N(number)|(E);
+
+    private double evaluation(LinkedList<String> expression, HashMap<String, Double> vars) {
+        if (expression.size() == 1) {
+            return Double.parseDouble(expression.getFirst());
+        } else {
+            return parseE();
+        }
+    }
+
+    private double parseE() {
+        double x = parseT();
+
+        while (true) {
+            System.out.println("x " + x);
+            String operator = buffer.next();
+
+            if (operator.equals("+") || operator.equals("-")) {
+                double y = parseT();
+                System.out.println("y " + y);
+                System.out.println(math(operator, x, y));
+                x = math(operator, x, y);
+            } else {
+                buffer.back();
+                return x;
+            }
+        }
+    }
+
+
+    private double parseT() {
+        double x = Double.parseDouble(buffer.next());
+        while (true) {
+            String operator = buffer.next();
+            if (operator != null && (operator.equals("*") || operator.equals("/"))) {
+                double y = Double.parseDouble(buffer.next());
+                System.out.println(math(operator, x, y));
+                x = math(operator, x, y);
+            } else {
+                buffer.back();
+                return x;
             }
         }
 
 
-        return 0.0;
     }
 
-    private ArrayList<String> mathExpressionAnalyze(String mathExpression, HashMap<String, Double> vars) throws Exception {
+    private LinkedList<String> mathExpressionAnalyze(String mathExpression, HashMap<String, Double> vars) throws Exception {
 
         /* this classes are used for finding matches in the math expression with the following patterns - regexp.
          * Nothing redundant will be saved to the arraylist with the expression - just numbers, variables,
@@ -56,7 +92,8 @@ public class Calculator {
             }
             if (isValue(value)) {
                 if (!isVarPresent(value, vars)) {
-                    throw new ArithmeticException("There is no value for variable: \"" + value + "\"");
+                    System.err.println("There is no value for variable: \"" + value + "\"");
+                    System.exit(-1);
                 } else {
                     expression.add(isNegative ? "-" + value : value);
                     isNegative = !isNegative;
@@ -71,7 +108,6 @@ public class Calculator {
         }
 
         System.out.println(expression.toString());
-
         return expression;
     }
 
@@ -85,7 +121,7 @@ public class Calculator {
      * in order to get its value later;
      */
     private boolean isVarPresent(String value, HashMap<String, Double> vars) {
-        return vars.get(value) != null;
+        return !vars.isEmpty() && vars.get(value) != null;
     }
 
 
@@ -110,4 +146,22 @@ public class Calculator {
         return val != null && val.matches(functions.buildRegexp());
     }
 
+    /**
+     * Method implements doing math depending on an operator or function;
+     *
+     * @return double, result of math operation;
+     */
+    private double math(String operator, double x, double y) {
+        if (!operations.map.containsKey(operator)) {
+            throw new IllegalStateException("Unexpected operator: " + operator);
+        }
+        return operations.map.get(operator).eval(x, y);
+    }
+
+    private double math(String operator, double x) {
+        if (!functions.funcMap.containsKey(operator)) {
+            throw new IllegalStateException("Unexpected operator: " + operator);
+        }
+        return functions.funcMap.get(operator).eval(x);
+    }
 }
