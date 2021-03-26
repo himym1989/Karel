@@ -51,7 +51,7 @@ abstract class MathFunction {
 
     public abstract String getFunction();
 
-    public abstract double calc(double x);
+    public abstract double eval(double x);
 }
 
 class MathSin extends MathFunction {
@@ -67,7 +67,7 @@ class MathSin extends MathFunction {
     }
 
     @Override
-    public double calc(double x) {
+    public double eval(double x) {
         return Math.sin(x);
     }
 }
@@ -85,7 +85,7 @@ class MathCos extends MathFunction {
     }
 
     @Override
-    public double calc(double x) {
+    public double eval(double x) {
         return Math.cos(x);
     }
 }
@@ -103,7 +103,7 @@ class MathTan extends MathFunction {
     }
 
     @Override
-    public double calc(double x) {
+    public double eval(double x) {
         return Math.tan(x);
     }
 }
@@ -122,7 +122,7 @@ class MathATan extends MathFunction {
 
 
     @Override
-    public double calc(double x) {
+    public double eval(double x) {
         return Math.atan(x);
     }
 }
@@ -140,7 +140,7 @@ class MathLog10 extends MathFunction {
     }
 
     @Override
-    public double calc(double x) {
+    public double eval(double x) {
         return Math.log10(x);
     }
 }
@@ -158,7 +158,7 @@ class MathLog2 extends MathFunction {
     }
 
     @Override
-    public double calc(double x) {
+    public double eval(double x) {
         return Math.log(x) / Math.log(2);
     }
 }
@@ -176,7 +176,7 @@ class MathSqrt extends MathFunction {
     }
 
     @Override
-    public double calc(double x) {
+    public double eval(double x) {
         return Math.sqrt(x);
     }
 }

@@ -30,7 +30,6 @@ class MathOperations {
             regexp.append("\\").append(key);
         }
         regexp.append("]");
-
         return regexp.toString();
     }
 
@@ -50,7 +49,7 @@ abstract class MathOperation {
 
     public abstract String getOperator();
 
-    public abstract double calc(double x, double y);
+    public abstract double eval(double x, double y);
 }
 
 class Group extends MathOperation {
@@ -74,7 +73,7 @@ class Group extends MathOperation {
     }
 
     @Override
-    public double calc(double x, double y) {
+    public double eval(double x, double y) {
         return 0;
     }
 }
@@ -92,7 +91,7 @@ class Addition extends MathOperation {
     }
 
     @Override
-    public double calc(double x, double y) {
+    public double eval(double x, double y) {
         return x + y;
     }
 }
@@ -110,7 +109,7 @@ class Division extends MathOperation {
     }
 
     @Override
-    public double calc(double x, double y) {
+    public double eval(double x, double y) {
         return x / y;
     }
 
@@ -129,7 +128,7 @@ class Exponentiation extends MathOperation {
     }
 
     @Override
-    public double calc(double x, double y) {
+    public double eval(double x, double y) {
         return Math.pow(x, y);
     }
 }
@@ -147,7 +146,7 @@ class Subtraction extends MathOperation {
     }
 
     @Override
-    public double calc(double x, double y) {
+    public double eval(double x, double y) {
         return x - y;
     }
 }
@@ -165,7 +164,7 @@ class Multiplication extends MathOperation {
     }
 
     @Override
-    public double calc(double x, double y) {
+    public double eval(double x, double y) {
         return x * y;
     }
 }

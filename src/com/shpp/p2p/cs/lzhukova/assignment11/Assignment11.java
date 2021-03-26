@@ -2,6 +2,7 @@ package com.shpp.p2p.cs.lzhukova.assignment11;
 
 
 import java.util.HashMap;
+import java.util.Scanner;
 
 
 /**
@@ -12,50 +13,34 @@ import java.util.HashMap;
 
 public class Assignment11 {
 
-    /* hashmap, that will contain variables with their values */
-    private static HashMap<String, Double> vars = new HashMap<>();
-
-
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         checkArguments(args);
 
         Calculator calculator = new Calculator();
         String mathExpression = args[0].toLowerCase().replaceAll(" ", "");
-        vars = extractVars(args);
+        double result = calculator.calculate(mathExpression, args);
 
         System.out.println("The result of math expression " + mathExpression +
-                (vars.isEmpty() ? "" : ", where variables are " + vars) + " is...." +
-                calculator.calculate(mathExpression, vars));
-    }
-
-    private static void checkArguments(String[] args) throws Exception {
-        if (args.length == 0) {
-            throw new Exception("You haven't input any expression");
-        }
-    }
+                (calculator.vars.isEmpty() ? "" : " with the following variables' value " + calculator.vars) + " is " +
+                result);
 
 
-    /**
-     * This method implements extracting variables and their values from program arguments
-     * and putting them to the hashmap;
-     *
-     * @param args - String array from the command line;
-     * @return vars, Hashmap with vars and values;
-     */
-    private static HashMap<String, Double> extractVars(String[] args) throws Exception {
-        for (int i = 1; i < args.length; i++) {
-            args[i] = args[i].replaceAll(" ", "");
-            String[] buffer = args[i].split("=");
-
-            if (buffer.length <= 1) {
-                System.err.println("Check your variables. Maybe you haven't input some variable's value.");
-                System.exit(-1);
-            } else {
-                String var = buffer[0].toLowerCase();
-                double value = Double.parseDouble(buffer[1]);
-                vars.put(var, value);
+        Scanner in = new Scanner(System.in);
+        System.out.println("Would you like to solve the expression with other variables value?... Y/N");
+        String answer = in.nextLine().toLowerCase();
+        if (answer.equals("y")) {
+            for (String key : calculator.vars.keySet()) {
+                System.out.println("Enter a value for variable " + key);
             }
+        } else if (answer.equals("n")) {
+            System.out.println("bye!");
         }
-        return vars;
+    }
+
+    private static void checkArguments(String[] args) {
+        if (args.length == 0 || args[0].equals("")) {
+            System.err.println("You haven't input any expression");
+            System.exit(-1);
+        }
     }
 }
