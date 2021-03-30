@@ -6,22 +6,24 @@ import java.util.Set;
 
 
 /**
- * This class contains all the math functions, their priority and implementation.
+ * This class contains all math functions and their implementation.
  */
 class MathFunctions {
     Map<String, MathFunction> funcMap = new HashMap<>();
 
     MathFunctions() {
+        add(new MathSqrt());
         add(new MathCos());
         add(new MathSin());
         add(new MathTan());
         add(new MathATan());
         add(new MathLog2());
         add(new MathLog10());
-        add(new MathSqrt());
     }
 
-    // method builds a regular expression with math functions
+    /**
+     * Method implements building regular expression for all functions;
+     */
     String buildRegexp() {
         Set<String> keys = funcMap.keySet();
         StringBuilder regexp = new StringBuilder("(");

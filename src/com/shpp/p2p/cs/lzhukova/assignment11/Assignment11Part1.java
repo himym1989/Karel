@@ -7,7 +7,7 @@ package com.shpp.p2p.cs.lzhukova.assignment11;
  * sin, cos, tan, atan, log10, log2, sqrt;
  */
 
-public class Assignment11 {
+public class Assignment11Part1 {
 
     public static void main(String[] args) {
         checkArguments(args);

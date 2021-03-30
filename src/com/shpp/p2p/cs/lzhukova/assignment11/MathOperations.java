@@ -6,7 +6,7 @@ import java.util.Set;
 
 
 /**
- * This class contains math operations, their implementation and priority;
+ * This class contains math operations and their evaluation;
  */
 class MathOperations {
 
@@ -14,15 +14,15 @@ class MathOperations {
 
     MathOperations() {
         add(new Addition());
-        add(new Division());
         add(new Subtraction());
-        add(new Exponentiation());
         add(new Multiplication());
-        add(new Group(Group.START_GROUP));
-        add(new Group(Group.END_GROUP));
+        add(new Division());
+        add(new Exponentiation());
     }
 
-    // method builds a regular expression with math operations
+    /**
+     * Method implements building regular expression for all operators;
+     */
     String buildRegexp() {
         Set<String> keys = map.keySet();
         StringBuilder regexp = new StringBuilder("[");
@@ -42,48 +42,16 @@ class MathOperations {
 }
 
 /**
- * abstract class, that describes common methods for all math operations;
+ * abstract class, that describes common methods for all operations;
  */
 abstract class MathOperation {
-    public abstract int getPriority();
-
     public abstract String getOperator();
 
     public abstract double eval(double x, double y);
 }
 
-class Group extends MathOperation {
-    static String START_GROUP = "(";
-    static String END_GROUP = ")";
-
-    String _operator;
-
-    Group(String operator) {
-        this._operator = operator;
-    }
-
-    @Override
-    public int getPriority() {
-        return -5;
-    }
-
-    @Override
-    public String getOperator() {
-        return _operator;
-    }
-
-    @Override
-    public double eval(double x, double y) {
-        return 0;
-    }
-}
 
 class Addition extends MathOperation {
-
-    @Override
-    public int getPriority() {
-        return 0;
-    }
 
     @Override
     public String getOperator() {
@@ -96,12 +64,35 @@ class Addition extends MathOperation {
     }
 }
 
-class Division extends MathOperation {
+
+class Subtraction extends MathOperation {
 
     @Override
-    public int getPriority() {
-        return 1;
+    public String getOperator() {
+        return "-";
     }
+
+    @Override
+    public double eval(double x, double y) {
+        return x - y;
+    }
+}
+
+
+class Multiplication extends MathOperation {
+
+    @Override
+    public String getOperator() {
+        return "*";
+    }
+
+    @Override
+    public double eval(double x, double y) {
+        return x * y;
+    }
+}
+
+class Division extends MathOperation {
 
     @Override
     public String getOperator() {
@@ -115,12 +106,8 @@ class Division extends MathOperation {
 
 }
 
-class Exponentiation extends MathOperation {
 
-    @Override
-    public int getPriority() {
-        return 2;
-    }
+class Exponentiation extends MathOperation {
 
     @Override
     public String getOperator() {
@@ -132,43 +119,6 @@ class Exponentiation extends MathOperation {
         return Math.pow(x, y);
     }
 }
-
-class Subtraction extends MathOperation {
-
-    @Override
-    public int getPriority() {
-        return 0;
-    }
-
-    @Override
-    public String getOperator() {
-        return "-";
-    }
-
-    @Override
-    public double eval(double x, double y) {
-        return x - y;
-    }
-}
-
-class Multiplication extends MathOperation {
-
-    @Override
-    public int getPriority() {
-        return 1;
-    }
-
-    @Override
-    public String getOperator() {
-        return "*";
-    }
-
-    @Override
-    public double eval(double x, double y) {
-        return x * y;
-    }
-}
-
 
 
 

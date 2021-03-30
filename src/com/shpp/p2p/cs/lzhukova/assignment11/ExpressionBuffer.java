@@ -19,7 +19,7 @@ public class ExpressionBuffer extends LinkedList<String> {
     }
 
     public void scanToken() {
-        position++;
+            position++;
     }
 
     public String previousToken() {

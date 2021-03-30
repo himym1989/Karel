@@ -9,7 +9,6 @@ public class Calculator {
     MathOperations operations = new MathOperations();
     MathFunctions functions = new MathFunctions();
 
-
     HashMap<String, Double> vars = new HashMap<>();
     ExpressionBuffer expressionBuffer = new ExpressionBuffer();
 
@@ -25,11 +24,7 @@ public class Calculator {
     // T2            -> F{^}F;
     // F(factor)     -> N(number)|(E);
     public double calculate() {
-        if (expressionBuffer.size() == 1) {
-            return Double.parseDouble(expressionBuffer.getFirst());
-        } else {
-            return parseE();
-        }
+        return parseE();
     }
 
     private double parseE() {
@@ -45,10 +40,8 @@ public class Calculator {
                 expressionBuffer.back();
                 return x;
             }
-
         }
     }
-
 
     private double parseT() {
         double x = parseT2();
@@ -81,17 +74,14 @@ public class Calculator {
 
     private double parseF() {
         String f = expressionBuffer.nextToken();
-
         while (true) {
             double a;
             if (isVariable(f)) {
                 return vars.get(f);
-            }
-            if (isFunction(f)) {
+            } else if (isFunction(f)) {
                 double x = parseF();
                 return math(f, x);
-            }
-            if (f.equals("(")) {
+            } else if (f.equals("(")) {
                 a = parseE();
                 if (expressionBuffer.nextToken().equals(")")) {
                     return a;
@@ -133,7 +123,8 @@ public class Calculator {
         /* this classes are used for finding matches in the math expression with the following patterns - regexp.
          * Nothing redundant will be saved to the arraylist with the expression - just numbers, variables,
          * operations and functions */
-        Pattern pattern = Pattern.compile(functions.buildRegexp() + "|" + "((\\d*\\.?\\d+)|([a-z]+)|" + operations.buildRegexp() + ")");
+        Pattern pattern = Pattern.compile(functions.buildRegexp() + "|" + "((\\d*\\.?\\d+)|([a-z]+)|\\)|\\(|"
+                + operations.buildRegexp() + ")");
         Matcher matcher = pattern.matcher(formula);
 
         while (matcher.find()) {
@@ -150,16 +141,30 @@ public class Calculator {
             }
         }
         bracketsCheck();
+        FirstAndLastTokenCheck();
+    }
+
+    private void FirstAndLastTokenCheck() {
+        String firstToken = expressionBuffer.getFirst();
+        String lastToken = expressionBuffer.getLast();
+        if (isOperator(firstToken) || isOperator(lastToken)) {
+            System.err.println("Expression can't start or end with an operator");
+            System.exit(-1);
+        }
     }
 
     private void bracketsCheck() {
         int openBracket = 0;
         int closeBracket = 0;
-        for (String s : expressionBuffer) {
-            if (s.equals("(")) {
+        for (int i = 0; i < expressionBuffer.size(); i++) {
+            if (expressionBuffer.get(i).equals("(")) {
+                if (expressionBuffer.get(i + 1).equals(")")) {
+                    System.err.println("You forgot about expression between brackets. Check and try again");
+                    System.exit(-1);
+                }
                 openBracket += 1;
             }
-            if (s.equals(")")) {
+            if (expressionBuffer.get(i).equals(")")) {
                 closeBracket += 1;
             }
         }
@@ -182,6 +187,12 @@ public class Calculator {
         return !vars.isEmpty() && vars.get(value) != null;
     }
 
+    /**
+     * This method checks if the value is an operator or not.
+     */
+    private boolean isOperator(String val) {
+        return val != null && val.matches(operations.buildRegexp());
+    }
 
     /**
      * This method checks if the value is a function or not.
