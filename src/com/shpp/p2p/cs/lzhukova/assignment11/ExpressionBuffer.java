@@ -2,17 +2,12 @@ package com.shpp.p2p.cs.lzhukova.assignment11;
 
 import java.util.LinkedList;
 
-public class ExpressionBuffer {
-    public LinkedList<String> expression;
+public class ExpressionBuffer extends LinkedList<String> {
     private int position;
 
-    public ExpressionBuffer(LinkedList<String> expression) {
-        this.expression = expression;
-    }
-
-    public String next() {
-        if(position==expression.size()) return null;
-        return expression.get(position++);
+    public String nextToken() {
+        if (position == size()) return null;
+        return get(position++);
     }
 
     public int getPosition() {
@@ -22,4 +17,14 @@ public class ExpressionBuffer {
     public void back() {
         position--;
     }
+
+    public void scanToken() {
+        position++;
+    }
+
+    public String previousToken() {
+        if (position == 0) return null;
+        return get(position--);
+    }
+
 }
