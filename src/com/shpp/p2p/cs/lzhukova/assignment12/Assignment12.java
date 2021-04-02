@@ -16,7 +16,7 @@ import java.util.Arrays;
 public class Assignment12 extends WindowProgram implements ComponentListener {
     private final String[] FILTERS = {".png", ".bmp", ".wbmp", ".jpg", ".gif", ".jpeg"};
     GImage image;
-    GImage displayImage;
+    public GImage displayImage;
     private JButton chooseImage;
     private JButton countSilhouettes;
     private JFileChooser fileChooser;
@@ -44,7 +44,7 @@ public class Assignment12 extends WindowProgram implements ComponentListener {
             this.chooseImage();
         }
         if (event.getSource() == countSilhouettes) {
-            this.countSilhouettes();
+            this.countSilhouettes(image);
         }
 
     }
@@ -94,11 +94,11 @@ public class Assignment12 extends WindowProgram implements ComponentListener {
 
     }
 
-    private void countSilhouettes() {
+    private void countSilhouettes(GImage image) {
         if (displayImage != null) {
             try {
-                FindingSilhouettes f = new FindingSilhouettes();
-                f.findSilhouettes(displayImage);
+                FindingSilhouettes f = new FindingSilhouettes(displayImage);
+//                f.getVertices(); // Todo here must be find method
             } catch (Exception e) {
                 e.printStackTrace();
             }
