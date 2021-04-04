@@ -7,63 +7,84 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class FindingSilhouettes {
+public class FindingSilhouettes implements SilhouettesParamConstants {
+
     private final ArrayList<Integer> Silhouettes;
-    int SilhouettesCount;
+
+    int SilhouettesCounter;
+
+    /**
+     * 2d - array, that is got from the picture;
+     */
     int[][] pixelArr;
+
+    /**
+     * Hashmap, that contains number of vertex and its status:
+     * - false, if vertex is not visited;
+     * - true, if vertex is visited;
+     */
     HashMap<Integer, Boolean> vertices;
-    private int vertexNum;
-    private int counter = 0;
-    private int pixelsNum = 0;
+
+    private int vertexCounter;
+    private int pixelsCounter;
+
+    /**
+     * counter-variable, that contains amount of pixels in each silhouette;
+     */
+    private int pixelsAmount;
 
     public FindingSilhouettes(GImage image) {
         Silhouettes = new ArrayList<>();
-
-        SilhouettesCount = 0;
-
+        SilhouettesCounter = 0;
         vertices = new HashMap<>();
         pixelArr = image.getPixelArray();
-        getVertices();
-        find();
+        searchVertices();
+        lookForSilhouettes();
     }
 
-    public void find() {
-        lookForSilhouette();
-        countCorrectSilhouettes();
-    }
-
-    private void countCorrectSilhouettes() {
-        for (int i = 0; i < Silhouettes.size(); i++) {
-            if (Silhouettes.get(i) > 150)
-                SilhouettesCount += 1;
+    private void countSilhouettes() {
+        for (Integer silhouette : Silhouettes) {
+            if (silhouette > (pixelArr.length * pixelArr[0].length) * MIN_SCALE) {
+                SilhouettesCounter += 1;
+            }
         }
-        System.out.println((SilhouettesCount <= 1 ? "There is " : "There are ") + SilhouettesCount +
-                (SilhouettesCount == 1 ? " silhouette " : " silhouettes ") +
-                "at the picture.");
     }
 
-    private void lookForSilhouette() {
+    /**
+     * Method implements search of available silhouettes at the picture,
+     * and  namely - search in the hashmap for "false" values,
+     * that means, that such vertices weren't visited before;
+     */
+    public void lookForSilhouettes() {
 
         for (Map.Entry<Integer, Boolean> entry : vertices.entrySet()) {
             if (Objects.equals(false, entry.getValue())) {
                 int startVertex = entry.getKey();
 
-                Silhouettes.add(counter, pixelsNum);
+                Silhouettes.add(pixelsCounter, pixelsAmount);
 
                 dfs(startVertex);
-                pixelsNum = 0;
-                counter += 1;
+                pixelsAmount = 0;
+                pixelsCounter += 1;
             }
-
         }
+        countSilhouettes();
+        System.out.println((SilhouettesCounter <= 1 ? "There is " : "There are ") + SilhouettesCounter +
+                (SilhouettesCounter <= 1 ? " silhouette " : " silhouettes ") +
+                "at the picture.");
     }
 
 
+    /**
+     * Method implements deep-first-search. Amount of pixels in each silhouettes is saved to the
+     * arrayList for later verification;
+     *
+     * @param vertex
+     */
     private void dfs(int vertex) {
-        pixelsNum += 1;
-        Silhouettes.set(counter, pixelsNum);
+        pixelsAmount += 1;
+        Silhouettes.set(pixelsCounter, pixelsAmount);
         vertices.put(vertex, true);
-//        System.out.println(vertex);
 
         int down = vertex + pixelArr[0].length;
         int up = vertex - pixelArr[0].length;
@@ -73,6 +94,7 @@ public class FindingSilhouettes {
         if (vertices.containsKey(down) && !vertices.get(down)) {
             dfs(down);
         }
+
         if (vertices.containsKey(right) && !vertices.get(right)) {
             dfs(right);
         }
@@ -84,48 +106,33 @@ public class FindingSilhouettes {
         }
     }
 
-
-    private int getPixelColor(int y, int x) {
-        int bgRed = GImage.getRed(pixelArr[y][x]);
-        int bgGreen = GImage.getGreen(pixelArr[y][x]);
-        int bgBlue = GImage.getBlue(pixelArr[y][x]);
-        return (bgRed + bgGreen + bgBlue) / 3;
+    /**
+     * Method implements getting luminance of a particular pixel;
+     */
+    private double getPixelLuminance(int y, int x) {
+        int red = GImage.getRed(pixelArr[y][x]);
+        int green = GImage.getGreen(pixelArr[y][x]);
+        int blue = GImage.getBlue(pixelArr[y][x]);
+        return (red * 0.2126f + green * 0.7152f + blue * 0.0722f) / 255;
     }
 
-    private void getVertices() {
-        int BGAlpha = getAlpha(0, 0);
-        System.out.println(BGAlpha);
-        if (BGAlpha != 0) {
-            searchVerticesForColor();
-        } else {
-            searchVerticesForAlpha(BGAlpha);
-        }
-
-    }
-
-    private void searchVerticesForAlpha(int BGAlpha) {
+    /**
+     * This method implements search of vertices in the 2d-array;
+     * Pixels with less then minimum valuable alpha and minimum valuable luminance will be saved
+     * to the hashmap for later silhouettes search;
+     */
+    private void searchVertices() {
         for (int y = 0; y < pixelArr.length; y++) {
             for (int x = 0; x < pixelArr[0].length; x++) {
-                vertexNum += 1;
-                if (getAlpha(y, x) != BGAlpha) {
-                    vertices.put(vertexNum, false);
+                vertexCounter += 1;
+                int alpha = GImage.getAlpha(pixelArr[y][x]);
+                if (alpha < MIN_VALUABLE_ALPHA) {
+                    continue;
+                }
+                if (getPixelLuminance(y, x) < MIN_VALUABLE_LUMINANCE) {
+                    vertices.put(vertexCounter, false);
                 }
             }
         }
-    }
-
-    private void searchVerticesForColor() {
-        for (int y = 0; y < pixelArr.length; y++) {
-            for (int x = 0; x < pixelArr[0].length; x++) {
-                vertexNum += 1;
-                if (getPixelColor(y, x) < 150) {
-                    vertices.put(vertexNum, false);
-                }
-            }
-        }
-    }
-
-    private int getAlpha(int y, int x) {
-        return GImage.getAlpha(pixelArr[y][x]);
     }
 }
