@@ -7,7 +7,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class FindingSilhouettes implements SilhouettesParamConstants {
+
+/**
+ * This class represents searching silhouettes using dfs-algorithm.
+ * It can handle png-files as well as jpg-files.
+ */
+public class FindSilhouettes implements SilhouettesParamConstants {
 
     private final ArrayList<Integer> Silhouettes;
 
@@ -33,7 +38,7 @@ public class FindingSilhouettes implements SilhouettesParamConstants {
      */
     private int pixelsAmount;
 
-    public FindingSilhouettes(GImage image) {
+    public FindSilhouettes(GImage image) {
         Silhouettes = new ArrayList<>();
         SilhouettesCounter = 0;
         vertices = new HashMap<>();
@@ -64,14 +69,19 @@ public class FindingSilhouettes implements SilhouettesParamConstants {
                 Silhouettes.add(pixelsCounter, pixelsAmount);
 
                 dfs(startVertex);
-                pixelsAmount = 0;
+
                 pixelsCounter += 1;
+                pixelsAmount = 0;
             }
         }
         countSilhouettes();
-        System.out.println((SilhouettesCounter <= 1 ? "There is " : "There are ") + SilhouettesCounter +
+        printResult();
+    }
+
+    public String printResult() {
+        return (SilhouettesCounter <= 1 ? "There is " : "There are ") + SilhouettesCounter +
                 (SilhouettesCounter <= 1 ? " silhouette " : " silhouettes ") +
-                "at the picture.");
+                "at the picture.";
     }
 
 
@@ -126,6 +136,7 @@ public class FindingSilhouettes implements SilhouettesParamConstants {
             for (int x = 0; x < pixelArr[0].length; x++) {
                 vertexCounter += 1;
                 int alpha = GImage.getAlpha(pixelArr[y][x]);
+
                 if (alpha < MIN_VALUABLE_ALPHA) {
                     continue;
                 }

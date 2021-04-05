@@ -12,16 +12,29 @@ import java.awt.event.ComponentListener;
 import java.io.File;
 import java.util.Arrays;
 
+/**
+ * This class implements a window program, that is used by user for downloading a picture
+ * for later silhouettes count.
+ * <p>
+ * Default picture for test is located in the package "assets".
+ * Please check the right path to this picture!!!
+ * <p>
+ * If you get "StackOverFlowError", please write "-Xss100m" to the VM-options in configuration.
+ */
 
 public class Assignment12 extends WindowProgram implements ComponentListener {
-    private final String[] FILTERS = {".png", ".bmp", ".wbmp", ".jpg", ".gif", ".jpeg"};
-    GImage image;
+
+    private final String TEST_PICTURE = "src/com/shpp/p2p/cs/lzhukova/assignment12/assets/materials.png";
+
+    private final String[] FILTERS = {".png", ".bmp", ".wbmp", ".jpg", ".jpeg"};
+
     public GImage displayImage;
+    GImage image;
     private JButton chooseImage;
     private JButton countSilhouettes;
     private JFileChooser fileChooser;
-    private JDialog errorDialog;
-    private JLabel errorLabel;
+    private JDialog dialog;
+    private JLabel label;
 
     public void init() {
         fileChooser = new JFileChooser();
@@ -32,7 +45,10 @@ public class Assignment12 extends WindowProgram implements ComponentListener {
         countSilhouettes = new JButton("Count Silhouettes");
         add(countSilhouettes, SOUTH);
 
-        addErrorDialog();
+        image = new GImage(TEST_PICTURE);
+        setImage(image);
+
+        addDialog();
 
         addActionListeners();
         this.addComponentListener(this);
@@ -41,10 +57,13 @@ public class Assignment12 extends WindowProgram implements ComponentListener {
 
     public void actionPerformed(ActionEvent event) {
         if (event.getSource() == chooseImage) {
+            dialog.setVisible(false);
+            displayImage = null;
+            removeAll();
             this.chooseImage();
         }
         if (event.getSource() == countSilhouettes) {
-            this.countSilhouettes(image);
+            this.countSilhouettes();
         }
 
     }
@@ -63,6 +82,7 @@ public class Assignment12 extends WindowProgram implements ComponentListener {
         if (fileChooser.showOpenDialog(this) == 0) {
             try {
                 this.image = new GImage(fileChooser.getSelectedFile().getAbsolutePath());
+
                 this.setImage(this.image);
             } catch (ErrorException var3) {
                 this.getDialog().showErrorMessage("Error loading file: " + var3.getMessage());
@@ -79,31 +99,29 @@ public class Assignment12 extends WindowProgram implements ComponentListener {
     private void setImage(GImage image) {
         this.displayImage = image;
         if (image != null) {
-            this.displayImage.setBounds(0.0D, 0.0D, 0.0D, 0.0D);
             this.add(this.displayImage);
         }
-
         this.redrawAll();
     }
 
     private void redrawAll() {
         if (this.displayImage != null) {
-            this.displayImage.setBounds(0.0D, 0.0D, (double) this.getWidth(),
+            this.displayImage.setBounds(0.0D, 0.0D, this.getWidth(),
                     this.getHeight());
         }
 
     }
 
-    private void countSilhouettes(GImage image) {
+    private void countSilhouettes() {
         if (displayImage != null) {
             try {
-                FindingSilhouettes f = new FindingSilhouettes(displayImage);
-//                f.getVertices(); // Todo here must be find method
+                FindSilhouettes findSilhouettes = new FindSilhouettes(displayImage);
+                showMessage(findSilhouettes.printResult());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            showError("You haven't chosen any image!");
+            showMessage("You haven't chosen any image!");
         }
     }
 
@@ -111,27 +129,27 @@ public class Assignment12 extends WindowProgram implements ComponentListener {
     /**
      * This method is called if the input name is null or already exists.
      */
-    private void addErrorDialog() {
-        errorDialog = new JDialog();
-        errorDialog.setSize(300, 100);
-        final int x = (getWidth() - errorDialog.getWidth()) / 2;
-        final int y = (getHeight() - errorDialog.getHeight()) / 2;
-        errorDialog.setLocation(x, y);
+    private void addDialog() {
+        dialog = new JDialog();
+        dialog.setSize(300, 100);
+        int x = (getWidth() - dialog.getWidth()) / 2;
+        int y = (getHeight() - dialog.getHeight()) / 2;
+        dialog.setLocation(x, y);
 
-        errorLabel = new JLabel("msg", SwingConstants.CENTER);
+        label = new JLabel("msg", SwingConstants.CENTER);
 
-        errorDialog.add(errorLabel);
+        dialog.add(label);
 
     }
 
     /**
-     * Method set text to the error label and makes error dialog visible.
+     * Method set text to the label and makes dialog visible.
      *
-     * @param msg, string, that will appear in the error dialog.
+     * @param msg, string, that will appear in the  dialog.
      */
-    private void showError(String msg) {
-        errorLabel.setText(msg);
-        errorDialog.setVisible(true);
+    private void showMessage(String msg) {
+        label.setText(msg);
+        dialog.setVisible(true);
     }
 
     public void componentResized(ComponentEvent arg0) {
