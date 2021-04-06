@@ -42,6 +42,7 @@ public class FindSilhouettes implements SilhouettesParamConstants {
         Silhouettes = new ArrayList<>();
         SilhouettesCounter = 0;
         vertices = new HashMap<>();
+
         pixelArr = image.getPixelArray();
         searchVertices();
         lookForSilhouettes();
@@ -94,6 +95,7 @@ public class FindSilhouettes implements SilhouettesParamConstants {
     private void dfs(int vertex) {
         pixelsAmount += 1;
         Silhouettes.set(pixelsCounter, pixelsAmount);
+
         vertices.put(vertex, true);
 
         int down = vertex + pixelArr[0].length;
@@ -119,10 +121,10 @@ public class FindSilhouettes implements SilhouettesParamConstants {
     /**
      * Method implements getting luminance of a particular pixel;
      */
-    private double getPixelLuminance(int y, int x) {
-        int red = GImage.getRed(pixelArr[y][x]);
-        int green = GImage.getGreen(pixelArr[y][x]);
-        int blue = GImage.getBlue(pixelArr[y][x]);
+    private double getPixelLuminance(int pixel) {
+        int red = GImage.getRed(pixel);
+        int green = GImage.getGreen(pixel);
+        int blue = GImage.getBlue(pixel);
         return (red * 0.2126f + green * 0.7152f + blue * 0.0722f) / 255;
     }
 
@@ -132,18 +134,26 @@ public class FindSilhouettes implements SilhouettesParamConstants {
      * to the hashmap for later silhouettes search;
      */
     private void searchVertices() {
+        boolean isLightBg = GImage.getAlpha(pixelArr[0][0]) == 0 || getPixelLuminance(pixelArr[0][0]) > MIN_VALUABLE_LUMINANCE;
+
         for (int y = 0; y < pixelArr.length; y++) {
             for (int x = 0; x < pixelArr[0].length; x++) {
                 vertexCounter += 1;
-                int alpha = GImage.getAlpha(pixelArr[y][x]);
 
+                int alpha = GImage.getAlpha(pixelArr[y][x]);
                 if (alpha < MIN_VALUABLE_ALPHA) {
                     continue;
                 }
-                if (getPixelLuminance(y, x) < MIN_VALUABLE_LUMINANCE) {
+
+                boolean isLightPixel = getPixelLuminance(pixelArr[y][x]) > MIN_VALUABLE_LUMINANCE;
+
+                if ((isLightBg && !isLightPixel) || (!isLightBg && isLightPixel)) {
                     vertices.put(vertexCounter, false);
                 }
             }
         }
     }
 }
+
+
+
