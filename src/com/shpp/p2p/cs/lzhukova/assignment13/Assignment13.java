@@ -1,16 +1,17 @@
 package com.shpp.p2p.cs.lzhukova.assignment13;
 
 import acm.graphics.GImage;
-import com.shpp.p2p.cs.lzhukova.assignment13.FindSilhouettes;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import static com.shpp.p2p.cs.lzhukova.assignment13.ImagePreprocessor.alphaBlend;
+
 public class Assignment13 {
 
 
-    private static final String TEST_PICTURE = "src/com/shpp/p2p/cs/lzhukova/assignment13/assets/test3.jpg";
+    private static final String TEST_PICTURE = "src/com/shpp/p2p/cs/lzhukova/assignment13/assets/tst_65.png";
 
     private static final String[] FILTERS = {".png", ".jpg", ".jpeg"};
 
@@ -27,9 +28,10 @@ public class Assignment13 {
         }
         if (acceptFileType(new File(filePath))) {
             try {
-                image = new GImage(filePath);
+
+                image = ImagePreprocessor.toGrayscale(alphaBlend(new GImage(filePath)));
+
                 FindSilhouettes f = new FindSilhouettes(image);
-                System.out.println(f.printResult());
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("Something goes wrong with your file or path to it. Check and try again!");

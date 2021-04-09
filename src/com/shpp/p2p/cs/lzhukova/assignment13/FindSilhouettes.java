@@ -2,143 +2,138 @@ package com.shpp.p2p.cs.lzhukova.assignment13;
 
 import acm.graphics.GImage;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class FindSilhouettes implements SilhouettesParamConstants {
 
-    private final ArrayList<Integer> Silhouettes;
-
-    int SilhouettesCounter;
+    private final ArrayList<Integer> silhouettes;
+    private final BreadFirstSearch bfs;
 
     /**
      * 2d - array, that is got from the picture;
      */
-    int[][] pixelArr;
-
+    private final int[][] pixelArr;
     /**
      * Hashmap, that contains number of vertex and its status:
      * - false, if vertex is not visited;
      * - true, if vertex is visited;
      */
-    HashMap<Integer, Boolean> vertices;
-
-    private int vertexCounter;
-    private int pixelsCounter;
-
-    /**
-     * counter-variable, that contains amount of pixels in each silhouette;
-     */
-    private int pixelsAmount;
+    private final HashMap<Integer, Boolean> vertices;
+    private final HashMap<Integer, Boolean> newVertices;
+    int averageSilhouette;
+    private int pixelCounter;
 
     public FindSilhouettes(GImage image) {
-        Silhouettes = new ArrayList<>();
-        SilhouettesCounter = 0;
-        vertices = new HashMap<>();
 
         pixelArr = image.getPixelArray();
+
+        bfs = new BreadFirstSearch(pixelArr);
+
+        vertices = new HashMap<>();
+        newVertices = new HashMap<>();
+
+
         searchVertices();
-        lookForSilhouettes();
+
+        silhouettes = bfs.lookForSilhouettes(vertices);
+        findAverageSilhouette();
     }
 
-    private void countSilhouettes() {
-        for (Integer silhouette : Silhouettes) {
+
+    /**
+     * This method implements counting of silhouettes and throwing out garbage using MIN_SCALE constant,
+     * that fixes size of garbage in 0.01 percent from the image size;
+     */
+    private void findAverageSilhouette() {
+        int sum = 0;
+        int silhouettesAmount = 0;
+
+        for (Integer silhouette : silhouettes) {
             if (silhouette > (pixelArr.length * pixelArr[0].length) * MIN_SCALE) {
-                SilhouettesCounter += 1;
+                sum += silhouette;
+                silhouettesAmount += 1;
             }
+        }
+        averageSilhouette = sum / silhouettesAmount;
+
+        System.out.println("Silhouettes before erosion... " + silhouettesAmount);
+        System.out.println("Average silhouette... " + averageSilhouette);
+        System.out.println();
+
+        int erosionCoefficient;
+        if (averageSilhouette > 500000) {
+            erosionCoefficient = 100;
+            imageErosion(erosionCoefficient);
+        }
+        else if (averageSilhouette > 100000) {
+            erosionCoefficient = 30;
+            imageErosion(erosionCoefficient);
+        }
+        else if (averageSilhouette > 20000) {
+            erosionCoefficient = 20;
+            imageErosion(erosionCoefficient);
+        } else if (averageSilhouette > 10000 && averageSilhouette < 20000) {
+            erosionCoefficient = 10;
+            imageErosion(erosionCoefficient);
+        } else if (averageSilhouette > 500 && averageSilhouette < 10000) {
+            erosionCoefficient = 1;
+            imageErosion(erosionCoefficient);
+        } else {
+            System.out.println(printResult(silhouettesAmount));
         }
     }
 
     /**
-     * Method implements search of available silhouettes at the picture,
-     * and  namely - search in the hashmap for "false" values,
-     * that means, that such vertices weren't visited before;
+     * This method implements counting of silhouettes and throwing out garbage using MIN_SCALE constant,
+     * that fixes size of garbage in 0.01 percent from the image size;
      */
-    public void lookForSilhouettes() {
+    private void countSilhouettes(ArrayList<Integer> silhouettesAfterErosion) {
+        int silhouettesCounter = 0;
+        double coeff;
+        if (averageSilhouette > 100000) {
+            coeff = 0.05;
+        } else {
+            coeff = 0.1;
+        }
+        for (Integer silhouette : silhouettesAfterErosion) {
+            if (silhouette > averageSilhouette * coeff) {
+                silhouettesCounter += 1;
+            }
+
+        }
+        System.out.println(printResult(silhouettesCounter));
+    }
+
+    private void imageErosion(int erosionCoefficient) {
+        System.out.println("start erosion");
 
         for (Map.Entry<Integer, Boolean> entry : vertices.entrySet()) {
-            if (Objects.equals(false, entry.getValue())) {
-                int startVertex = entry.getKey();
+            int vertex = entry.getKey();
 
-                Silhouettes.add(pixelsCounter, pixelsAmount);
+            int down = vertex + pixelArr[0].length * erosionCoefficient + erosionCoefficient;
+            int up = vertex - pixelArr[0].length * erosionCoefficient + erosionCoefficient;
+            int right = vertex + erosionCoefficient;
+            int left = vertex - erosionCoefficient;
 
-                bfs(startVertex);
-
-                pixelsCounter += 1;
-                pixelsAmount = 0;
+            if (vertices.containsKey(down) && vertices.containsKey(up) && vertices.containsKey(right) && vertices.containsKey(left)) {
+                newVertices.put(vertex, false);
             }
         }
-        countSilhouettes();
-        printResult();
+
+        ArrayList<Integer> silhouettesAfterErosion = bfs.lookForSilhouettes(newVertices);
+
+        System.out.println(silhouettesAfterErosion);
+        countSilhouettes(silhouettesAfterErosion);
     }
 
-    private void bfs(int vertex) {
-        LinkedList<Integer> listOfVertices = new LinkedList<Integer>();
-        listOfVertices.add(vertex);
 
-
-        while (!listOfVertices.isEmpty()) {
-
-            pixelsAmount += 1;
-            Silhouettes.set(pixelsCounter, pixelsAmount);
-
-            int visitedVertex = listOfVertices.removeFirst();
-
-            vertices.put(visitedVertex, true);
-
-            int down = visitedVertex + pixelArr[0].length;
-            int up = visitedVertex - pixelArr[0].length;
-            int right = visitedVertex + 1;
-            int left = visitedVertex - 1;
-
-
-            int[] directions = {down, up, right, left};
-            for (int direction : directions) {
-                if (vertices.containsKey(direction) && !vertices.get(direction) && !listOfVertices.contains(direction)) {
-                    listOfVertices.add(direction);
-                }
-            }
-
-        }
-
-    }
-
-    public String printResult() {
-        return (SilhouettesCounter <= 1 ? "There is " : "There are ") + SilhouettesCounter +
-                (SilhouettesCounter <= 1 ? " silhouette " : " silhouettes ") +
+    public String printResult(int silhouettesAmount) {
+        return (silhouettesAmount <= 1 ? "There is " : "There are ") + silhouettesAmount +
+                (silhouettesAmount <= 1 ? " silhouette " : " silhouettes ") +
                 "at the picture.";
-    }
-
-
-    /**
-     * Method implements deep-first-search. Amount of pixels in each silhouettes is saved to the
-     * arrayList for later verification;
-     *
-     * @param vertex
-     */
-    private void dfs(int vertex) {
-        pixelsAmount += 1;
-        Silhouettes.set(pixelsCounter, pixelsAmount);
-
-        vertices.put(vertex, true);
-
-        int down = vertex + pixelArr[0].length;
-        int up = vertex - pixelArr[0].length;
-        int right = vertex + 1;
-        int left = vertex - 1;
-
-        if (vertices.containsKey(down) && !vertices.get(down)) {
-            dfs(down);
-        }
-
-        if (vertices.containsKey(right) && !vertices.get(right)) {
-            dfs(right);
-        }
-        if (vertices.containsKey(up) && !vertices.get(up)) {
-            dfs(up);
-        }
-        if (vertices.containsKey(left) && !vertices.get(left)) {
-            dfs(left);
-        }
     }
 
     /**
@@ -148,6 +143,7 @@ public class FindSilhouettes implements SilhouettesParamConstants {
         int red = GImage.getRed(pixel);
         int green = GImage.getGreen(pixel);
         int blue = GImage.getBlue(pixel);
+        /* formula for finding luminance of the color */
         return (red * 0.2126f + green * 0.7152f + blue * 0.0722f) / 255;
     }
 
@@ -158,22 +154,49 @@ public class FindSilhouettes implements SilhouettesParamConstants {
      */
     private void searchVertices() {
         boolean isLightBg = GImage.getAlpha(pixelArr[0][0]) == 0 || getPixelLuminance(pixelArr[0][0]) > MIN_VALUABLE_LUMINANCE;
+//        boolean isLightBg = getPixelLuminance(pixelArr[0][0]) > MIN_VALUABLE_LUMINANCE;
+
 
         for (int y = 0; y < pixelArr.length; y++) {
             for (int x = 0; x < pixelArr[0].length; x++) {
-                vertexCounter += 1;
+                int pixel = pixelArr[y][x];
 
-                int alpha = GImage.getAlpha(pixelArr[y][x]);
+                pixelCounter += 1;
+
+                int alpha = GImage.getAlpha(pixel);
                 if (alpha < MIN_VALUABLE_ALPHA) {
                     continue;
                 }
 
-                boolean isLightPixel = getPixelLuminance(pixelArr[y][x]) > MIN_VALUABLE_LUMINANCE;
+
+                int color = (GImage.getRed(pixel) + GImage.getGreen(pixel) + GImage.getBlue(pixel)) / 3;
+
+                boolean isLightPixel = color > MIN_VALUABLE_COLOR;
 
                 if ((isLightBg && !isLightPixel) || (!isLightBg && isLightPixel)) {
-                    vertices.put(vertexCounter, false);
+                    vertices.put(pixelCounter, false);
                 }
             }
         }
+
+
+//        for (int y = 0; y < pixelArr.length; y++) {
+//            for (int x = 0; x < pixelArr[0].length; x++) {
+//                int pixel = pixelArr[y][x];
+//
+//                pixelCounter += 1;
+////
+////                int alpha = GImage.getAlpha(pixel);
+////                if (alpha < MIN_VALUABLE_ALPHA) {
+////                    continue;
+////                }
+//
+//                boolean isLightPixel = getPixelLuminance(pixel) > MIN_VALUABLE_LUMINANCE;
+//
+//                if ((isLightBg && !isLightPixel) || (!isLightBg && isLightPixel)) {
+//                    vertices.put(pixelCounter, false);
+//                }
+//            }
+//        }
     }
 }

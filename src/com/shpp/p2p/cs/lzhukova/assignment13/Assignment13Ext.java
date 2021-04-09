@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Arrays;
 
+import static com.shpp.p2p.cs.lzhukova.assignment13.ImagePreprocessor.alphaBlend;
+
 /**
  * This class implements a window program, that is used by user for downloading a picture
  * for later silhouettes count.
@@ -21,8 +23,6 @@ import java.util.Arrays;
  */
 
 public class Assignment13Ext extends WindowProgram {
-
-    private static String currentPicture = "src/com/shpp/p2p/cs/lzhukova/assignment13/assets/materials.png";
 
     private final String[] FILTERS = {".png", ".jpg", ".jpeg"};
 
@@ -44,7 +44,9 @@ public class Assignment13Ext extends WindowProgram {
         countSilhouettes = new JButton("Count Silhouettes");
         add(countSilhouettes, SOUTH);
 
-        image = new GImage(currentPicture);
+        String currentPicture = "src/com/shpp/p2p/cs/lzhukova/assignment13/assets/13.png";
+
+        image = ImagePreprocessor.toGrayscale(alphaBlend(new GImage(currentPicture)));
         setImage();
 
         addDialog();
@@ -107,7 +109,6 @@ public class Assignment13Ext extends WindowProgram {
         if (image != null) {
             try {
                 FindSilhouettes findSilhouettes = new FindSilhouettes(image);
-                showMessage(findSilhouettes.printResult());
             } catch (Exception e) {
                 e.printStackTrace();
             }
