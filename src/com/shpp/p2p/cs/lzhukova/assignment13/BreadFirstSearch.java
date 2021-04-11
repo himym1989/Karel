@@ -8,7 +8,6 @@ public class BreadFirstSearch {
     private int pixelsInObject;
     private final int[][] pixelArr;
 
-
     public BreadFirstSearch(int[][] pixelArr) {
         this.pixelArr = pixelArr;
     }

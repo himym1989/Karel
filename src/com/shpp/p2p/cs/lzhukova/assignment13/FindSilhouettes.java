@@ -5,13 +5,15 @@ import acm.graphics.GImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class FindSilhouettes implements SilhouettesParamConstants {
 
     private final ArrayList<Integer> silhouettes;
     private final BreadFirstSearch bfs;
-
+    int silhouettesCounter;
     /**
      * 2d - array, that is got from the picture;
      */
@@ -22,9 +24,8 @@ public class FindSilhouettes implements SilhouettesParamConstants {
      * - true, if vertex is visited;
      */
     private final HashMap<Integer, Boolean> vertices;
-    private final HashMap<Integer, Boolean> newVertices;
+    private final HashMap<Integer, Boolean> erasedVertices;
     int averageSilhouette;
-    private int pixelCounter;
 
     public FindSilhouettes(GImage image) {
 
@@ -33,13 +34,14 @@ public class FindSilhouettes implements SilhouettesParamConstants {
         bfs = new BreadFirstSearch(pixelArr);
 
         vertices = new HashMap<>();
-        newVertices = new HashMap<>();
+        erasedVertices = new HashMap<>();
 
+        silhouettesCounter = 0;
 
         searchVertices();
-
         silhouettes = bfs.lookForSilhouettes(vertices);
         findAverageSilhouette();
+        imageErosion(averageSilhouette);
     }
 
 
@@ -60,30 +62,6 @@ public class FindSilhouettes implements SilhouettesParamConstants {
         averageSilhouette = sum / silhouettesAmount;
 
         System.out.println("Silhouettes before erosion... " + silhouettesAmount);
-        System.out.println("Average silhouette... " + averageSilhouette);
-        System.out.println();
-
-        int erosionCoefficient;
-        if (averageSilhouette > 500000) {
-            erosionCoefficient = 100;
-            imageErosion(erosionCoefficient);
-        }
-        else if (averageSilhouette > 100000) {
-            erosionCoefficient = 30;
-            imageErosion(erosionCoefficient);
-        }
-        else if (averageSilhouette > 20000) {
-            erosionCoefficient = 20;
-            imageErosion(erosionCoefficient);
-        } else if (averageSilhouette > 10000 && averageSilhouette < 20000) {
-            erosionCoefficient = 10;
-            imageErosion(erosionCoefficient);
-        } else if (averageSilhouette > 500 && averageSilhouette < 10000) {
-            erosionCoefficient = 1;
-            imageErosion(erosionCoefficient);
-        } else {
-            System.out.println(printResult(silhouettesAmount));
-        }
     }
 
     /**
@@ -91,24 +69,35 @@ public class FindSilhouettes implements SilhouettesParamConstants {
      * that fixes size of garbage in 0.01 percent from the image size;
      */
     private void countSilhouettes(ArrayList<Integer> silhouettesAfterErosion) {
-        int silhouettesCounter = 0;
-        double coeff;
-        if (averageSilhouette > 100000) {
-            coeff = 0.05;
-        } else {
-            coeff = 0.1;
-        }
+
         for (Integer silhouette : silhouettesAfterErosion) {
-            if (silhouette > averageSilhouette * coeff) {
+            if (silhouette > averageSilhouette * AFTER_EROSION_SCALE) {
                 silhouettesCounter += 1;
             }
 
         }
-        System.out.println(printResult(silhouettesCounter));
+        System.out.println(printResult());
+        System.out.println();
     }
 
-    private void imageErosion(int erosionCoefficient) {
-        System.out.println("start erosion");
+    private void imageErosion(int averageSilhouette) {
+        System.out.println("Starting erosion...");
+        int erosionCoefficient = 0;
+
+        Map<Integer, Integer> erosionCoefficients = Stream.of(new Object[][]{
+                {500000, 100},
+                {100000, 30},
+                {20000, 20},
+                {10000, 10},
+                {500, 1},
+        }).collect(Collectors.toMap(data -> (Integer) data[0], data -> (Integer) data[1]));
+
+        for (Integer key : erosionCoefficients.keySet()) {
+            if (averageSilhouette > key) {
+                erosionCoefficient = erosionCoefficients.get(key);
+                break;
+            }
+        }
 
         for (Map.Entry<Integer, Boolean> entry : vertices.entrySet()) {
             int vertex = entry.getKey();
@@ -119,21 +108,19 @@ public class FindSilhouettes implements SilhouettesParamConstants {
             int left = vertex - erosionCoefficient;
 
             if (vertices.containsKey(down) && vertices.containsKey(up) && vertices.containsKey(right) && vertices.containsKey(left)) {
-                newVertices.put(vertex, false);
+                erasedVertices.put(vertex, false);
             }
         }
 
-        ArrayList<Integer> silhouettesAfterErosion = bfs.lookForSilhouettes(newVertices);
-
-        System.out.println(silhouettesAfterErosion);
+        ArrayList<Integer> silhouettesAfterErosion = bfs.lookForSilhouettes(erasedVertices);
         countSilhouettes(silhouettesAfterErosion);
     }
 
 
-    public String printResult(int silhouettesAmount) {
-        return (silhouettesAmount <= 1 ? "There is " : "There are ") + silhouettesAmount +
-                (silhouettesAmount <= 1 ? " silhouette " : " silhouettes ") +
-                "at the picture.";
+    public String printResult() {
+        return (silhouettesCounter <= 1 ? "There is " : "There are ") + silhouettesCounter +
+                (silhouettesCounter <= 1 ? " silhouette " : " silhouettes ") +
+                "at the picture after erosion.";
     }
 
     /**
@@ -154,49 +141,26 @@ public class FindSilhouettes implements SilhouettesParamConstants {
      */
     private void searchVertices() {
         boolean isLightBg = GImage.getAlpha(pixelArr[0][0]) == 0 || getPixelLuminance(pixelArr[0][0]) > MIN_VALUABLE_LUMINANCE;
-//        boolean isLightBg = getPixelLuminance(pixelArr[0][0]) > MIN_VALUABLE_LUMINANCE;
-
+        int pixelCounter = 0;
 
         for (int y = 0; y < pixelArr.length; y++) {
             for (int x = 0; x < pixelArr[0].length; x++) {
-                int pixel = pixelArr[y][x];
 
+                int pixel = pixelArr[y][x];
                 pixelCounter += 1;
+
+                int color = (GImage.getRed(pixel) + GImage.getGreen(pixel) + GImage.getBlue(pixel)) / 3;
+                boolean isLightPixel = color > MIN_VALUABLE_COLOR;
 
                 int alpha = GImage.getAlpha(pixel);
                 if (alpha < MIN_VALUABLE_ALPHA) {
                     continue;
                 }
 
-
-                int color = (GImage.getRed(pixel) + GImage.getGreen(pixel) + GImage.getBlue(pixel)) / 3;
-
-                boolean isLightPixel = color > MIN_VALUABLE_COLOR;
-
                 if ((isLightBg && !isLightPixel) || (!isLightBg && isLightPixel)) {
                     vertices.put(pixelCounter, false);
                 }
             }
         }
-
-
-//        for (int y = 0; y < pixelArr.length; y++) {
-//            for (int x = 0; x < pixelArr[0].length; x++) {
-//                int pixel = pixelArr[y][x];
-//
-//                pixelCounter += 1;
-////
-////                int alpha = GImage.getAlpha(pixel);
-////                if (alpha < MIN_VALUABLE_ALPHA) {
-////                    continue;
-////                }
-//
-//                boolean isLightPixel = getPixelLuminance(pixel) > MIN_VALUABLE_LUMINANCE;
-//
-//                if ((isLightBg && !isLightPixel) || (!isLightBg && isLightPixel)) {
-//                    vertices.put(pixelCounter, false);
-//                }
-//            }
-//        }
     }
 }

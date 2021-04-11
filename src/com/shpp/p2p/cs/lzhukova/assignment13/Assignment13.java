@@ -6,7 +6,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.shpp.p2p.cs.lzhukova.assignment13.ImagePreprocessor.alphaBlend;
 
 public class Assignment13 {
 
@@ -29,7 +28,7 @@ public class Assignment13 {
         if (acceptFileType(new File(filePath))) {
             try {
 
-                image = ImagePreprocessor.toGrayscale(alphaBlend(new GImage(filePath)));
+                image = new GImage(filePath);
 
                 FindSilhouettes f = new FindSilhouettes(image);
             } catch (Exception e) {
