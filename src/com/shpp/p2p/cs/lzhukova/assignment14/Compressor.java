@@ -15,15 +15,15 @@ public class Compressor {
             codes.put(inByte, null);
         }
 
-        byte neededBitSetSize = (byte) Math.ceil(Math.sqrt(codes.size()));
+        byte neededBitSetSize =  (byte) (Math.log(codes.size()) / Math.log(2));
 //        int codesInBytes = (int) Math.ceil(codes.size() * neededBitSetSize / 8);
         int dataInBytes = (inBytes.length * neededBitSetSize + codes.size() * neededBitSetSize) / 8 + 1;
         System.out.println(dataInBytes);
 
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + codes.size() + 1 + dataInBytes);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 1 + codes.size()  + dataInBytes);
         System.out.println("Unique symbols " + codes.size());
         System.out.println("Inbyte size " + inBytes.length);
-        System.out.println("neededBitSetSize " + (int) Math.ceil(Math.sqrt(codes.size())));
+        System.out.println("neededBitSetSize " + neededBitSetSize);
         long fileSizeInBytes = inBytes.length;
 
         buffer.putInt(codes.size());
@@ -31,7 +31,7 @@ public class Compressor {
         buffer.put(neededBitSetSize);
 
         System.out.println("buffer after putting unique symbols and size of the file in bytes: ");
-        System.out.println(Arrays.toString(buffer.array()));
+//        System.out.println(Arrays.toString(buffer.array()));
 
         BitSet bits = BitSet.valueOf(ByteBuffer.allocate(dataInBytes));
 
@@ -65,7 +65,7 @@ public class Compressor {
         System.out.println("bits:" + bits.size());
 
         buffer.put(bits.toByteArray());
-//        System.out.println(Arrays.toString(bits.toByteArray()));
+//        System.out.println(Arrays.toString(buffer.array()));
         return buffer.array();
     }
 
@@ -73,12 +73,11 @@ public class Compressor {
         HashMap<BitSet, Byte> codes = new HashMap<>();
 
         int position = 0;
+//
+//        System.out.println("длина входящего массива(архив): " + inBytes.length);
+//        System.out.println("весь входящий массив " + Arrays.toString(inBytes));
 
-        System.out.println(inBytes.length);
         ByteBuffer buffer = ByteBuffer.wrap(inBytes);
-//        System.out.println("table size " + buffer.getInt(position));
-//        System.out.println("data length " + buffer.getLong(position));
-//        System.out.println("size of bitset " + buffer.get(12));
 
         int tableSize = buffer.getInt(position);
         position += 4;
@@ -87,24 +86,44 @@ public class Compressor {
         int bitSetSize = buffer.get(position);
         position += 1;
 
-        byte[] keysList = new byte[tableSize];
+//        System.out.println("table size " + buffer.getInt(position));
+//        System.out.println("data length " + buffer.getLong(position));
+//        System.out.println("size of bitset " + buffer.get(12));
+
+
+        byte[] valuesList = new byte[tableSize];
         for (int i = 0; i < tableSize; i++) {
-            keysList[i] = buffer.get(position);
+            valuesList[i] = buffer.get(position);
+            position++;
+        }
+//        System.out.println("Value list " + Arrays.toString(valuesList));
+
+        byte[] restOfArchive = new byte[(int) (tableSize + dataSize) / 8 * bitSetSize + 1];
+//        System.out.println(restOfArchive.length);
+        for (int i = 0; i < (int) (tableSize + dataSize) / 8 * bitSetSize + 1; i++) {
+            restOfArchive[i] = inBytes[position];
             position++;
         }
 
+//        System.out.println("ключи и текст: " + Arrays.toString(restOfArchive));
+        BitSet dataInBits = BitSet.valueOf(restOfArchive);
+//        System.out.println("значение и текст в битстете " + dataInBits);
+//        System.out.println(dataInBits.size());
+        int valuesInBytes = tableSize * bitSetSize; // 40
+        ByteBuffer result = ByteBuffer.allocate((int) dataSize);
 
+        for (int i = 0, k = 0; i <= dataInBits.length(); i += bitSetSize, k++) {
+            BitSet set = dataInBits.get(i, i + bitSetSize);
+            if (k < tableSize) {
+                codes.put(set, valuesList[k]);
+            } else {
+                result.put(codes.get(set));
+            }
+        }
 
-//            for (byte b : inBytes) {
-//                BitSet codeBitSet = codes.get(b);
-//                for (int k = 0; k < neededBitSetSize; k++) {
-//                    bitIndex++;
-//                    bits.set(bitIndex, codeBitSet.get(k));
-//                }
-//            }
-        System.out.println(Arrays.toString(keysList));
-        System.out.println(codes);
-        return inBytes;
+//        System.out.println(codes);
+//        System.out.println(Arrays.toString(result.array()));
+        return result.array();
     }
 
 }
