@@ -4,29 +4,47 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.HashMap;
 
+/**
+ * This class implements the compressor and decompressor directly;
+ */
 public class Compressor {
 
+    /**
+     * @param inBytes - Array of bytes, that is made from incoming file, is passed to the method;
+     * @return byte array, that contains compressed information;
+     * also the result array contains some technical information:
+     * first four bytes  - amount of unique symbols in file;
+     * next eight bytes - size of incoming byte array;
+     * next one byte - bits amount, that is needed to "code" one unique symbol;
+     * This information is important for later unarchiving;
+     */
     public byte[] archive(byte[] inBytes) {
-//        System.out.println("In-array of bytes: " + Arrays.toString(inBytes));
 
+        /**
+         * Hashmap, that contains unique bytes(key) and bitsets(value) for coding;
+         * */
         HashMap<Byte, BitSet> codes = new HashMap<>();
         for (byte inByte : inBytes) {
             codes.put(inByte, null);
         }
 
-        byte neededBitSetSize =  (byte) (Math.ceil(Math.log(codes.size()) / Math.log(2)));
+        // variable, that contains amount of bits, needed for coding. Depends on the amount of unique bytes
+        // in the incoming file
+        byte neededBitSetSize = (byte) (Math.ceil(Math.log(codes.size()) / Math.log(2)));
+        // variable, that contains size of the hashmap with codes and size of incoming info in bytes;
         int dataInBytes = (inBytes.length * neededBitSetSize + codes.size() * neededBitSetSize) / 8 + 1;
 
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 1 + codes.size()  + dataInBytes);
+        // byte buffer, that will contain all the encoded info before writing it to the output file;
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 8 + 1 + codes.size() + dataInBytes);
 
-        long fileSizeInBytes = inBytes.length;
-
+        //  amount of unique symbols in file;
         buffer.putInt(codes.size());
+        // size of incoming byte array;
         buffer.putLong(inBytes.length);
+        // bits amount, that is needed to "code" one unique symbol;
         buffer.put(neededBitSetSize);
 
-//        System.out.println("buffer after putting unique symbols and size of the file in bytes: ");
-
+        // bitset, that will be used for reading per
         BitSet bits = BitSet.valueOf(ByteBuffer.allocate(dataInBytes));
 
 
@@ -53,10 +71,6 @@ public class Compressor {
                 bits.set(bitIndex, codeBitSet.get(k));
             }
         }
-//
-//        System.out.println();
-//        System.out.println("codes:" + codes.size());
-//        System.out.println("bits:" + bits.size());
 
         buffer.put(bits.toByteArray());
         return buffer.array();
@@ -66,9 +80,6 @@ public class Compressor {
         HashMap<BitSet, Byte> codes = new HashMap<>();
 
         int position = 0;
-//
-//        System.out.println("длина входящего массива(архив): " + inBytes.length);
-//        System.out.println("весь входящий массив " + Arrays.toString(inBytes));
 
         ByteBuffer buffer = ByteBuffer.wrap(inBytes);
 
@@ -79,30 +90,20 @@ public class Compressor {
         int bitSetSize = buffer.get(position);
         position += 1;
 
-//        System.out.println("table size " + buffer.getInt(position));
-//        System.out.println("data length " + buffer.getLong(position));
-//        System.out.println("size of bitset " + buffer.get(12));
-
 
         byte[] valuesList = new byte[tableSize];
         for (int i = 0; i < tableSize; i++) {
             valuesList[i] = buffer.get(position);
             position++;
         }
-//        System.out.println("Value list " + Arrays.toString(valuesList));
 
         byte[] restOfArchive = new byte[(int) (tableSize + dataSize) / 8 * bitSetSize + 1];
-//        System.out.println(restOfArchive.length);
         for (int i = 0; i < (int) (tableSize + dataSize) / 8 * bitSetSize + 1; i++) {
             restOfArchive[i] = inBytes[position];
             position++;
         }
 
-//        System.out.println("ключи и текст: " + Arrays.toString(restOfArchive));
         BitSet dataInBits = BitSet.valueOf(restOfArchive);
-//        System.out.println("значение и текст в битстете " + dataInBits);
-//        System.out.println(dataInBits.size());
-        int valuesInBytes = tableSize * bitSetSize; // 40
         ByteBuffer result = ByteBuffer.allocate((int) dataSize);
 
 
@@ -114,9 +115,6 @@ public class Compressor {
                 result.put(codes.get(set));
             }
         }
-
-//        System.out.println(codes);
-//        System.out.println(Arrays.toString(result.array()));
         return result.array();
     }
 
