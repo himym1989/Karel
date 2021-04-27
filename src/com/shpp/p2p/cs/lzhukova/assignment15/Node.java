@@ -6,18 +6,25 @@ public class Node {
     private Node leftChild;
     private Node rightChild;
     private boolean visited;
+    private boolean hasValue;
 
     public Node(int frequency) {
         this.frequency = frequency;
         visited = false;
-    }
-
-    public Byte getValue() {
-        return value;
+        hasValue = false;
     }
 
     public void setValue(Byte value) {
         this.value = value;
+        hasValue = true;
+    }
+    public Byte getValue() {
+        return value;
+    }
+
+
+    public boolean hasValue() {
+        return hasValue;
     }
 
     public int getFrequency() {
@@ -40,11 +47,11 @@ public class Node {
         this.rightChild = rightChild;
     }
 
-    public void setVisited(boolean visited){
-        this.visited = visited;
-    }
-
     public boolean getVisited() {
         return visited;
+    }
+
+    public void setVisited(boolean visited) {
+        this.visited = visited;
     }
 }

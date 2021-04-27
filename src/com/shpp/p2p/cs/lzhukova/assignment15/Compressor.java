@@ -1,5 +1,6 @@
 package com.shpp.p2p.cs.lzhukova.assignment15;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
@@ -9,6 +10,9 @@ public class Compressor {
     HashMap bytesAndFrequencies;
     LinkedList huffmanTree;
     HashMap<Byte, BitSet> uniqueCodes;
+    BitSet bufferForTree;
+    ByteBuffer bufferForBytes;
+    int iterator;
 
     /**
      * @param inBytes - Array of bytes, that is made from incoming file, is passed to the method;
@@ -21,11 +25,15 @@ public class Compressor {
      * This information is important for later unarchiving;
      */
     public byte[] archive(byte[] inBytes) {
-
+        iterator = 0;
         bytesAndFrequencies = getUniqueBytes(inBytes);
         huffmanTree = buildHuffmanTree();
-        createCodes();
 
+        bufferForTree = new BitSet();
+        bufferForBytes = ByteBuffer.allocate(bytesAndFrequencies.size());
+
+        createCodes();
+        System.out.println(Arrays.toString(bufferForBytes.array()));
 
 //        // variable, that contains amount of bits, needed for coding. Depends on the amount of unique bytes
 //        // in the incoming file
@@ -93,34 +101,62 @@ public class Compressor {
     private void createCodes() {
         uniqueCodes = new HashMap<>();
         Node startNode = (Node) huffmanTree.peekFirst();
-        BitSet bufferBitSet = new BitSet(8);
-        int bitSetIndex = 0;
-        dfs(startNode, bufferBitSet, bitSetIndex);
+        BitSet bufferBitSet = new BitSet();
+        int bitSetIndex = -1;
+        int bufferForTreeIndex = 0;
+        bufferForTree.set(bufferForTreeIndex, true);
+        traverseHuffmanTree(startNode, bufferBitSet, bitSetIndex, bufferForTreeIndex);
+        System.out.println(uniqueCodes);
+        System.out.println(bufferForTree);
+
     }
 
-    private void dfs(Node node, BitSet bufferBitSet, int bitSetIndex) {
+    private void traverseHuffmanTree(Node node, BitSet bufferBitSet, int bitSetIndex, int bufferForTreeIndex) {
+        bitSetIndex += 1;
+        bufferForTreeIndex += 1;
+
 
         Node leftChild = node.getLeftChild();
         Node rightChild = node.getRightChild();
 
         if (leftChild != null && !leftChild.getVisited()) {
-            if(leftChild.getValue()==null) {
-                bufferBitSet.set(bitSetIndex, false);
-                bitSetIndex += 1;
-                dfs(leftChild, bufferBitSet, bitSetIndex);
+
+            bufferBitSet.clear(bitSetIndex + 1, bitSetIndex + 7);
+            bufferBitSet.set(bitSetIndex, false);
+            leftChild.setVisited(true);
+            bufferForTree.set(bufferForTreeIndex, true);
+
+            if (leftChild.hasValue()) {
+                BitSet clone = (BitSet) bufferBitSet.clone();
+                uniqueCodes.put(leftChild.getValue(), clone);
+                bufferForBytes.put(leftChild.getValue());
+                bufferForTree.set(bufferForTreeIndex, false);
+
             }
-            if (leftChild.getValue() != null && !leftChild.getVisited()) {
-                bufferBitSet.set(bitSetIndex, false);
-                uniqueCodes.put(leftChild.getValue(), bufferBitSet);
-                leftChild.setVisited(true);
-            }  else if (rightChild.getValue() != null && !rightChild.getVisited()) {
-                bufferBitSet.set(bitSetIndex, true);
-                uniqueCodes.put(rightChild.getValue(), bufferBitSet);
-                rightChild.setVisited(true);
-            }
+            traverseHuffmanTree(leftChild, bufferBitSet, bitSetIndex, bufferForTreeIndex);
         }
-        System.out.println(uniqueCodes);
-        System.out.println(bitSetIndex);
+
+        if (rightChild != null && !rightChild.getVisited()) {
+
+            bufferBitSet.clear(bitSetIndex
+                    + 1, bitSetIndex + 7);
+            rightChild.setVisited(true);
+            bufferBitSet.set(bitSetIndex, true);
+            bufferForTree.set(bufferForTreeIndex, true);
+
+            if (rightChild.hasValue()) {
+                BitSet clone = (BitSet) bufferBitSet.clone();
+                uniqueCodes.put(rightChild.getValue(), clone);
+                bufferForBytes.put(rightChild.getValue());
+                bufferForTree.set(bufferForTreeIndex, false);
+
+            }
+//            else if(!rightChild.hasValue()) {
+//            }
+
+            traverseHuffmanTree(rightChild, bufferBitSet, bitSetIndex, bufferForTreeIndex);
+        }
+
 
     }
 
@@ -149,14 +185,11 @@ public class Compressor {
             });
 
             Node leftChild = huffmanTree.pollFirst();
-//            System.out.println(leftChild.getValue());
             Node rightChild = huffmanTree.pollFirst();
 
             Node newNode = new Node(leftChild.getFrequency() + rightChild.getFrequency());
             newNode.setLeftChild(leftChild);
             newNode.setRightChild(rightChild);
-
-//            System.out.println(newNode.getFrequency());
             huffmanTree.addFirst(newNode);
         }
         return huffmanTree;
