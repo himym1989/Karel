@@ -14,14 +14,14 @@ public class Node {
         hasValue = false;
     }
 
-    public void setValue(Byte value) {
-        this.value = value;
-        hasValue = true;
-    }
     public Byte getValue() {
         return value;
     }
 
+    public void setValue(Byte value) {
+        this.value = value;
+        hasValue = true;
+    }
 
     public boolean hasValue() {
         return hasValue;

@@ -16,7 +16,7 @@ public class Compressor implements Constants {
     HashMap<Byte, String> bytesAndCodes;
 
     // structure of the tree in string representation(0 - is a leaf; 1 - is not a leaf);
-    String treeStructure;
+    String treeShape;
 
     // buffer, that contain unique bytes to be encoded; will be written to general buffer and then to output file
     // in order to restore the Huffman tree after decompression;
@@ -29,7 +29,8 @@ public class Compressor implements Constants {
     // bitset will contain encoded information in bits;
     BitSet dataInBits;
     // structure of the tree in bits;
-    BitSet treeStructureInBits;
+    BitSet treeShapeInBits;
+    long dataLengthInBits;
 
 
     /**
@@ -45,38 +46,41 @@ public class Compressor implements Constants {
     public byte[] compress(byte[] inBytes) {
         bytesAndFrequencies = getBytesAndFrequencies(inBytes);
         huffmanTree = buildHuffmanTree();
-        treeStructure = new String();
+        treeShape = new String();
         dataInBits = new BitSet();
-        treeStructureInBits = new BitSet();
+        treeShapeInBits = new BitSet();
 
         bufferForBytes = ByteBuffer.allocate(bytesAndFrequencies.size());
         bufferForFile = ByteBuffer.allocate(inBytes.length);
         generateCodes();
 
-        generalBuffer = ByteBuffer.allocate(TREE_SIZE + TREE_STRUCTURE + bytesAndFrequencies.size() + bufferForFile.capacity());
+        generalBuffer = ByteBuffer.allocate(TREE_SIZE + DATA_LENGTH + TREE_STRUCTURE + bytesAndFrequencies.size() + bufferForFile.capacity());
 
 
-        for (int i = 0; i < treeStructure.length(); i++) {
+        for (int i = 0; i < treeShape.length(); i++) {
 
-            if (treeStructure.charAt(i) == '0') {
-                treeStructureInBits.set(i, false);
+            if (treeShape.charAt(i) == '0') {
+                treeShapeInBits.set(i, false);
             } else {
-                treeStructureInBits.set(i, true);
+                treeShapeInBits.set(i, true);
             }
         }
 
 
         // STEPS OF PREPARING OUTCOMING BYTE ARRAY
         // FIRST step: putting to the buffer length of tree in bits
-        generalBuffer.putInt(treeStructure.length());
-        System.out.println("length of tree " + treeStructure.length());
+        generalBuffer.putInt(treeShape.length());
+        System.out.println("length of tree " + treeShape.length());
 //        System.out.println(treeStructureInBits);
 
-        // SECOND step: putting to the buffer tree structure in bits;
-        generalBuffer.put(treeStructureInBits.toByteArray());
-        System.out.println(Arrays.toString(treeStructureInBits.toByteArray()));
+
 
         encodeTheFile(inBytes);
+
+        generalBuffer.putLong(dataLengthInBits);
+        // SECOND step: putting to the buffer tree structure in bits;
+        generalBuffer.put(treeShapeInBits.toByteArray());
+        System.out.println(Arrays.toString(treeShapeInBits.toByteArray()));
 
         // THIRD step: putting to the buffer bytes, that are encoded;
         generalBuffer.put(bufferForBytes.array());
@@ -99,13 +103,16 @@ public class Compressor implements Constants {
 
     private void encodeTheFile(byte[] inBytes) {
         int bitSetIndex = 0;
+        dataLengthInBits = 0;
         for (byte b : inBytes) {
             String code = bytesAndCodes.get(b);
             for (int i = 0; i < code.length(); i++) {
                 dataInBits.set(bitSetIndex, code.charAt(i) == '0' ? false : true);
                 bitSetIndex += 1;
+                dataLengthInBits+=1;
             }
         }
+
     }
 
     /**
@@ -120,7 +127,7 @@ public class Compressor implements Constants {
         traverseHuffmanTree(startNode, "");
 
         System.out.println("bytes and codes " + bytesAndCodes);
-        System.out.println("tree structure " + treeStructure);
+        System.out.println("tree structure " + treeShape);
     }
 
     /**
@@ -134,11 +141,11 @@ public class Compressor implements Constants {
      */
     private void traverseHuffmanTree(Node node, String code) {
         if (!node.hasValue()) {
-            treeStructure = treeStructure + '1';
+            treeShape = treeShape + '1';
             traverseHuffmanTree(node.getLeftChild(), code + '0');
             traverseHuffmanTree(node.getRightChild(), code + '1');
         } else {
-            treeStructure = treeStructure + '0';
+            treeShape = treeShape + '0';
             bufferForBytes.put(node.getValue());
 
             bytesAndCodes.put(node.getValue(), code);

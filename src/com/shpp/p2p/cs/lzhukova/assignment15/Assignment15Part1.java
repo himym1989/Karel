@@ -32,11 +32,21 @@ public class Assignment15Part1 {
      */
     private static final String UNARCHIVE_EXTENSION = ".uar";
 
-    private static final String DEFAULT_IN_FILE = "1.txt";
-    private static final String DEFAULT_OUT_FILE = "1.txt.par";
+//    private static final String DEFAULT_IN_FILE = "1.txt";
+//    private static final String DEFAULT_OUT_FILE = "1.txt.par";
+
+    private static final String DEFAULT_IN_FILE = "facebook.svg";
+    private static final String DEFAULT_OUT_FILE = "facebook.svg.par";
+
+//    private static final String DEFAULT_IN_FILE = "logo.svg";
+//    private static final String DEFAULT_OUT_FILE = "logo.svg.par";
+
 
     private static final String FLAG_ARCHIVE = "-a";
     private static final String FLAG_UNARCHIVE = "-u";
+
+    // index of dor in ascii table;
+    public static final int DOT = 46;
 
     public static void main(String[] args) {
         // String, that will contain name of the file for archiving;
@@ -80,6 +90,7 @@ public class Assignment15Part1 {
 
         try {
             Compressor compressor = new Compressor();
+            Decompressor decompressor = new Decompressor();
 
             // Names of in- and out-files depends on the goal of program: archiving or unarchiving;
             String inFile = toArchive ? PATH_TO_FILE + forArchiveFile : PATH_TO_FILE + archivedFile;
@@ -92,16 +103,17 @@ public class Assignment15Part1 {
 
             // the content of the result byte array depends also on the purpose of the program: to archive or unarchive;
             // different methods are called depends on the program's goal;
-            byte[] result = compressor.archive(fin.readAllBytes());
-//            byte[] result = toArchive ? compressor.archive(fin.readAllBytes()) : compressor.unarchive(fin.readAllBytes());
+            byte[] result = toArchive ? compressor.compress(fin.readAllBytes()) : decompressor.decompress(fin.readAllBytes());
             long elapsedArchiveTime = System.nanoTime() - startArchiveTime;
-            // elapsed time in seconds;
+            // elapsed time in seconds:
+            // converting nano-seconds to seconds dividing by 1_000_000_000;
             double elapsedTimeInSecond = (double) elapsedArchiveTime / 1_000_000_000;
 
 
-//            FileOutputStream fot = new FileOutputStream(outFile);
+            FileOutputStream fot = new FileOutputStream(outFile);
 //            // writing to the result file
-//            fot.write(result);
+                fot.write(result);
+
 
             // sizes of in- and out-files;
             long inFileSize = new File(inFile).length();
@@ -128,7 +140,7 @@ public class Assignment15Part1 {
      * @return String, extension of the file;
      */
     private static String extensionOf(String filename) {
-        int lastDot = filename.lastIndexOf(46);
+        int lastDot = filename.lastIndexOf(DOT);
         return lastDot == -1 ? "" : filename.substring(lastDot);
 
     }
