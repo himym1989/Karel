@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 public class MyArrayListTest {
 
     @Test
-    public void testAddSetGetRemove() {
+    public void AddSetGetRemove() {
         MyArrayList<Integer> myArrayList = new MyArrayList();
         ArrayList<Integer> expected = new ArrayList<>();
 
@@ -59,25 +59,41 @@ public class MyArrayListTest {
 
     @Test
     public void isEmpty() {
-        MyArrayList<Integer> arrayList = new MyArrayList<>();
-        assertEquals(true, arrayList.isEmpty());
-        arrayList.add(1);
-        assertEquals(false, arrayList.isEmpty());
-        arrayList.clear();
-        assertEquals(true, arrayList.isEmpty());
+        MyArrayList<Integer> myArrayList = new MyArrayList<>();
+        assertEquals(true, myArrayList.isEmpty());
+        myArrayList.add(1);
+        assertEquals(false, myArrayList.isEmpty());
+        myArrayList.clear();
+        assertEquals(true, myArrayList.isEmpty());
 
     }
 
     @Test
     public void contains() {
-        MyArrayList<Boolean> arrayList = new MyArrayList<>();
-        assertEquals(false, arrayList.contains(true));
-        arrayList.add(true);
-        arrayList.add(false);
-        assertEquals(true, arrayList.contains(true));
-        assertEquals(true, arrayList.contains(false));
-        arrayList.clear();
-        assertEquals(false, arrayList.contains(false));
+        MyArrayList<Boolean> myArrayList = new MyArrayList<>();
+        assertEquals(false, myArrayList.contains(true));
+        myArrayList.add(true);
+        myArrayList.add(false);
+        assertEquals(true, myArrayList.contains(true));
+        assertEquals(true, myArrayList.contains(false));
+        myArrayList.clear();
+        assertEquals(false, myArrayList.contains(false));
 
+    }
+
+    @Test
+    public void indexOf() {
+        MyArrayList<String> myArrayList = new MyArrayList<>();
+        // test indexOf and lastIndexOf in the empty array list
+        assertEquals(-1, myArrayList.indexOf("one"));
+        assertEquals(-1, myArrayList.lastIndexOf("one"));
+
+        myArrayList.add("one");
+        myArrayList.add("one");
+        myArrayList.add("one");
+
+        // test indexOf and lastIndexOf after adding elements;
+        assertEquals(0, myArrayList.indexOf("one"));
+        assertEquals(2, myArrayList.lastIndexOf("one"));
     }
 }

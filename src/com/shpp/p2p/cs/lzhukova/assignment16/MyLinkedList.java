@@ -43,6 +43,16 @@ class Node<E> {
 // - add +;
 // - addLast +;
 // - addFirst +;
+// - peek +
+// - peekFirst +
+// - peekLast +
+// - poll
+// - pollFirst
+// - pollLast
+// - get(index)
+// - isEmpty +
+// - clear +
+
 
 public class MyLinkedList<E> {
     private Node<E> first;
@@ -86,12 +96,14 @@ public class MyLinkedList<E> {
             addFirst(data);
             return;
         }
-
+        if (index == size) {
+            addLast(data);
+            return;
+        }
         Node<E> newNode = new Node<>(data);
         int i = 0;
         Node<E> oldNode = first;
         while (i < index) {
-            System.out.println(oldNode.getData());
             if (i == index - 1) {
                 newNode.setPrev(oldNode);
                 newNode.setNext(oldNode.getNext());
@@ -103,7 +115,63 @@ public class MyLinkedList<E> {
         size++;
     }
 
-    //
+    public E peek() {
+        return peekFirst();
+    }
+
+    public E peekFirst() {
+        return first.getData();
+    }
+
+    public E peekLast() {
+        return last.getData();
+    }
+
+    public E poll() {
+        return pollFirst();
+    }
+
+    public E pollFirst() {
+        Node<E> node = first;
+        if (node != null) {
+            first = first.getNext();
+            size--;
+            return node.getData();
+        }
+        return null;
+    }
+
+    public E pollLast() {
+        Node<E> node = last;
+        if (node != null) {
+            last = last.getPrev();
+            size--;
+            return node.getData();
+        }
+        return null;
+    }
+
+    public E get(int index) {
+        if (index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", size: " + size);
+        }
+        if (index == 0) {
+            return peekFirst();
+        }
+        if (index == size - 1) {
+            return peekLast();
+        } else {
+            int i = 0;
+            Node<E> node = first;
+            while (i < index) {
+                node = node.getNext();
+                i++;
+            }
+            return node.getData();
+        }
+
+    }
+
     public String toString() {
         E[] arr = (E[]) new Object[size];
         Node<E> node = first;
@@ -117,10 +185,15 @@ public class MyLinkedList<E> {
     }
 
     public void clear() {
-
+        first = last = null;
+        size = 0;
     }
 
     public int size() {
         return size;
+    }
+
+    public boolean isEmpty() {
+        return first == null;
     }
 }
