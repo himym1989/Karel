@@ -100,6 +100,9 @@ public class MyArrayList<E> {
      * @return E - element;
      */
     public E get(int index) {
+        if (index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", size: " + size);
+        }
         return (E) array[index];
     }
 

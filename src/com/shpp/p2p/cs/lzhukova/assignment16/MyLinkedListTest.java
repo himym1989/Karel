@@ -1,24 +1,23 @@
 package com.shpp.p2p.cs.lzhukova.assignment16;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.LinkedList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-class MyLinkedListTest {
+public class MyLinkedListTest {
 
     @Test
-    void addTest() {
+    public void addTest() {
         LinkedList<Integer> expected = new LinkedList<>();
         MyLinkedList<Integer> myLinkedList = new MyLinkedList<>();
 
         // test isEmpty before adding elements;
-        //noinspection ConstantConditions
         assertEquals(expected.isEmpty(), myLinkedList.isEmpty());
 
-        // adding 10 elements one by one;
+        // adding 100 elements one by one;
         for (int i = 0; i < 100; i++) {
             myLinkedList.add(i);
             expected.add(i);
@@ -45,12 +44,13 @@ class MyLinkedListTest {
     }
 
     @Test
-    void peekAndPollTest() {
+    public void peekAndPollTest() {
         LinkedList<Integer> expected = new LinkedList<>();
         MyLinkedList<Integer> myLinkedList = new MyLinkedList<>();
 
         assertNull(myLinkedList.pollFirst());
         assertNull(myLinkedList.pollLast());
+
 
         // adding 100 elements one by one;
         for (int i = 0; i < 100; i++) {
@@ -94,7 +94,7 @@ class MyLinkedListTest {
     }
 
     @Test
-    void getTest() {
+    public void getTest() {
         LinkedList<Integer> expected = new LinkedList<>();
         MyLinkedList<Integer> myLinkedList = new MyLinkedList<>();
 
@@ -104,9 +104,33 @@ class MyLinkedListTest {
             expected.add(i);
         }
 
-        assertEquals(expected.getFirst(), myLinkedList.get(0));
+        assertEquals(expected.getFirst(), myLinkedList.getFirst());
         assertEquals(expected.get(50), myLinkedList.get(50));
-        assertEquals(expected.getLast(), myLinkedList.get(myLinkedList.size() - 1));
+        assertEquals(expected.getLast(), myLinkedList.getLast());
         assertEquals(expected.toString(), myLinkedList.toString());
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testIndexOutOfBoundsExceptionByAdding() {
+        MyLinkedList<Integer> myLinkedList = new MyLinkedList<>();
+        myLinkedList.add(4,5);
+
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testIndexOutOfBoundsExceptionByGetting() {
+        MyLinkedList<Integer> myLinkedList = new MyLinkedList<>();
+        myLinkedList.add(1);
+        myLinkedList.add(1);
+        myLinkedList.add(1);
+        myLinkedList.add(1);
+        myLinkedList.get(4);
+
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testIndexOutOfBoundsExceptionByGettingFirstEl() {
+        MyLinkedList<Integer> myLinkedList = new MyLinkedList<>();
+        myLinkedList.getFirst();
     }
 }

@@ -96,4 +96,29 @@ public class MyArrayListTest {
         assertEquals(0, myArrayList.indexOf("one"));
         assertEquals(2, myArrayList.lastIndexOf("one"));
     }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testIndexOutOfBoundsExceptionByAdding() {
+        MyArrayList<Integer> myArrayList = new MyArrayList<>();
+        myArrayList.add(4, 5);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testIndexOutOfBoundsExceptionBySetting() {
+        MyArrayList<Integer> myArrayList = new MyArrayList<>();
+        myArrayList.set(0, 3);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testIndexOutOfBoundsExceptionByGetting() {
+        MyArrayList<Integer> myArrayList = new MyArrayList<>();
+        myArrayList.get(0);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testIndexOutOfBoundsExceptionByRemoving() {
+        MyArrayList<Integer> myArrayList = new MyArrayList<>();
+        myArrayList.remove(0);
+    }
+
 }
