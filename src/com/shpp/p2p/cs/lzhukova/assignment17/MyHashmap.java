@@ -4,7 +4,7 @@ package com.shpp.p2p.cs.lzhukova.assignment17;
 import java.util.*;
 
 public class MyHashmap<K, V> {
-    int DEFAULT_CAPACITY = 16;
+    int DEFAULT_CAPACITY = 32;
     Entry<K, V>[] table = new Entry[DEFAULT_CAPACITY];
     MyArrayList<K> keys = new MyArrayList<>();
     private int size = 0;
@@ -37,13 +37,16 @@ public class MyHashmap<K, V> {
             }
             while (entry.hasNext());
             entry.next = newEntry;
+//            System.out.println(entry.next.key.toString());
         } else {
-            if (!keys.contains(key)) {
-                keys.add(key);
-            }
             table[bucket] = newEntry;
-            size++;
+//            System.out.println(newEntry.key.toString());
         }
+
+        if (!keys.contains(key)) {
+            keys.add(key);
+        }
+        size++;
 
         return null;
     }
@@ -59,8 +62,11 @@ public class MyHashmap<K, V> {
         if (table[bucket] != null) {
             Entry<K, V> entry = table[bucket];
             do {
-                if ((Objects.equals(entry.key, key))) {
+                if (Objects.equals(entry.key, key)) {
                     return entry.value;
+                }
+                if (entry.next != null) {
+                    entry = entry.next;
                 }
             }
             while (entry.hasNext());
@@ -76,7 +82,7 @@ public class MyHashmap<K, V> {
      * @return - bucket, that contains the key;
      */
     private int getBucket(K key) {
-        return key.hashCode() % DEFAULT_CAPACITY;
+        return hash(key) % DEFAULT_CAPACITY;
     }
 
     /**
@@ -84,7 +90,8 @@ public class MyHashmap<K, V> {
      * @return - true, if the hashmap contains a key, false  - if doesn't;
      */
     public boolean containsKey(K key) {
-        return get(key) != null;
+        if (keys == null) return false;
+        return keySet().contains(key);
     }
 
     /**
@@ -120,6 +127,7 @@ public class MyHashmap<K, V> {
         for (int i = 0; i < DEFAULT_CAPACITY; i++) {
             table[i] = null;
         }
+        keys.clear();
         size = 0;
     }
 
@@ -128,29 +136,42 @@ public class MyHashmap<K, V> {
     }
 
     public boolean isEmpty() {
-        for (int i = 0; i < DEFAULT_CAPACITY; i++) {
-            if (table[i] != null) return false;
-        }
-        return true;
+        return keys.isEmpty();
     }
 
     public String toString() {
-        String[] arr = new String[size];
+        Iterator<Entry<K, V>> iterator = entrySet().iterator();
         StringBuilder sb;
+        String[] array = new String[size()];
         int counter = 0;
-        for (int i = 0; i < DEFAULT_CAPACITY; i++) {
-            if (table[i] != null) {
-                Entry<K, V> entry = table[i];
-                do {
-                    sb = new StringBuilder();
-                    sb.append(entry.key.toString()).append("=").append(entry.value.toString());
-                    arr[counter] = sb.toString();
-                    counter++;
-                }
-                while (entry.hasNext());
-            }
-        }
-        return Arrays.toString(arr);
+        do {
+            Entry<K, V> entry = iterator.next();
+            sb = new StringBuilder();
+            sb.append(entry.key.toString()).append("=").append(entry.value.toString());
+            array[counter] = sb.toString();
+            counter++;
+        } while (iterator.hasNext());
+
+//        String[] arr = new String[size];
+//        StringBuilder sb;
+//
+//        int counter = 0;
+//        System.out.println(size);
+//        for (int i = 0; i < DEFAULT_CAPACITY; i++) {
+//            if (table[i] != null) {
+//                Entry<K, V> entry = table[i];
+//                do {
+//                    sb = new StringBuilder();
+//                    sb.append(entry.key.toString()).append("=").append(entry.value.toString());
+//                    arr[counter] = sb.toString();
+//                    counter++;
+//                    entry = entry.next;
+//                }
+//                while (entry!=null && entry.hasNext());
+//                System.out.println("bucket " + i);
+//            }
+//        }
+        return Arrays.toString(array);
     }
 
     public AbstractSet<K> keySet() {
@@ -189,12 +210,13 @@ public class MyHashmap<K, V> {
 
                     @Override
                     public boolean hasNext() {
-                        return index < keys.size();
+                        return index < size();
                     }
 
                     @Override
                     public Entry<K, V> next() {
                         K key = keys.get(index++);
+
                         return new Entry<>(key, get(key), hash(key), null);
                     }
                 };

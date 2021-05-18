@@ -1,6 +1,9 @@
 package com.shpp.p2p.cs.lzhukova.assignment17;
 
-import org.junit.Test;
+import org.junit.*;
+
+import java.util.HashMap;
+import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
@@ -8,6 +11,7 @@ public class MyHashmapTest {
 
     @Test
     public void Test() {
+        HashMap<Integer, Integer> hm = new HashMap<>();
         MyHashmap<Integer, Integer> myHashmap = new MyHashmap<>();
         myHashmap.put(1, 1);
         myHashmap.put(2, 10);
@@ -32,12 +36,16 @@ public class MyHashmapTest {
         assertFalse(myHashmap.containsValue(100));
         assertTrue(myHashmap.containsValue(1));
 
+
         myHashmap.clear();
         assertTrue(myHashmap.isEmpty());
+        assertEquals(0, myHashmap.size());
+
         // test after clearing the hashmap;
         assertFalse(myHashmap.containsKey(1));
-        assertFalse(myHashmap.containsKey(4));
-        assertFalse(myHashmap.containsValue(10));
-        assertFalse(myHashmap.containsValue(1));
+        for (int i = 0; i < 100; i++) {
+            myHashmap.put(i, i);
+        }
+        assertEquals(100, myHashmap.size());
     }
 }

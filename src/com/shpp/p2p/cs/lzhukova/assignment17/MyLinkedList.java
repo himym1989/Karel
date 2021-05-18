@@ -1,6 +1,7 @@
 package com.shpp.p2p.cs.lzhukova.assignment17;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -73,7 +74,6 @@ public class MyLinkedList<E> {
     private int size;
 
     public MyLinkedList() {
-        size = 0;
         clear();
     }
 
@@ -86,7 +86,7 @@ public class MyLinkedList<E> {
      */
     public void addLast(E data) {
         Node<E> node = new Node<>(data);
-        if (last == null) {
+        if (first == null && last == null) {
             first = last = node;
         } else {
             node.setPrev(last);
@@ -114,7 +114,7 @@ public class MyLinkedList<E> {
      */
     public void addFirst(E data) {
         Node<E> node = new Node<>(data);
-        if (last == null) {
+        if (first == null && last == null) {
             first = last = node;
         } else {
             node.setNext(first);
@@ -193,11 +193,15 @@ public class MyLinkedList<E> {
      * @return - first element of the list, removing it, or null, if the list is empty
      */
     public E pollFirst() {
-        Node<E> node = first;
-        if (node != null) {
-            first = first.getNext();
+        if (first != null) {
+            E data = first.getData();
+            if (size == 1) {
+                last = first = null;
+            } else {
+                first = first.getNext();
+            }
             size--;
-            return node.getData();
+            return data;
         }
         return null;
     }
@@ -206,11 +210,15 @@ public class MyLinkedList<E> {
      * @return - last element of the list, removing it, or null, if the list is empty
      */
     public E pollLast() {
-        Node<E> node = last;
-        if (node != null) {
-            last = last.getPrev();
+        if (last != null) {
+            E data = last.getData();
+            if (size == 1) {
+                last = first = null;
+            } else {
+                last = last.getPrev();
+            }
             size--;
-            return node.getData();
+            return data;
         }
         return null;
     }
@@ -253,6 +261,7 @@ public class MyLinkedList<E> {
 
 
     public boolean contains(E element) {
+        if (first == null) return false;
         for (int i = 0; i < size; i++) {
             if (Objects.equals(element, get(i))) {
                 return true;
@@ -293,11 +302,18 @@ public class MyLinkedList<E> {
     public String toString() {
         E[] arr = (E[]) new Object[size];
         Node<E> node = first;
+
+        if (first == null) {
+            return "[]";
+        }
+
         int i = 0;
         while (i < size) {
-            arr[i] = (E) node.getData();
+            arr[i] = node.getData();
             i++;
-            node = node.getNext();
+            if (node.hasNext()) {
+                node = node.getNext();
+            }
         }
         return Arrays.toString(arr);
     }
@@ -323,4 +339,24 @@ public class MyLinkedList<E> {
     public boolean isEmpty() {
         return first == null;
     }
+
+
+    public Iterator<E> iterator() {
+        return new Iterator<>() {
+            Node<E> node = first;
+
+            @Override
+            public boolean hasNext() {
+                return node != null;
+            }
+
+            @Override
+            public E next() {
+                E currentData = node.getData();
+                node = node.getNext();
+                return currentData;
+            }
+        };
+    }
+
 }
